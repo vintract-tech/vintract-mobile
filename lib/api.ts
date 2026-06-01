@@ -182,3 +182,211 @@ export function changePassword(old_password: string, new_password: string) {
     body: JSON.stringify({ old_password, new_password }),
   });
 }
+
+// ----- HR: Employee, Attendance, Payslips ----------------------------
+
+export type Address = {
+  line1?: string | null;
+  line2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pin?: string | null;
+  country?: string | null;
+};
+
+export type Employee = {
+  id: number;
+  employee_code: string;
+  full_name: string;
+  preferred_name: string | null;
+  date_of_birth: string | null;
+  gender: string | null;
+  marital_status: string | null;
+  blood_group: string | null;
+  nationality: string | null;
+  phone: string | null;
+  alt_phone: string | null;
+  personal_email: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_relation: string | null;
+  emergency_contact_phone: string | null;
+  photo_s3_key: string | null;
+  photo_url: string | null;
+
+  designation: string | null;
+  department: string | null;
+  employment_type: string;
+  work_location: string | null;
+  shift_pattern: string | null;
+  joined_at: string | null;
+  confirmation_date: string | null;
+  terminated_at: string | null;
+  status: string;
+  reporting_manager_id: number | null;
+  reporting_manager_name: string | null;
+
+  compensation_mode: string;
+  monthly_ctc: number | null;
+  hourly_rate: number | null;
+  daily_rate: number | null;
+  basic_pct: number | null;
+  hra_pct: number | null;
+  conveyance: number | null;
+  medical_allowance: number | null;
+  lta: number | null;
+  other_allowance: number | null;
+
+  pan: string | null;
+  aadhaar_masked: string | null;
+  uan: string | null;
+  esic_number: string | null;
+  passport_number: string | null;
+  bank_holder_name: string | null;
+  bank_name: string | null;
+  bank_branch: string | null;
+  bank_account_type: string | null;
+  bank_account_masked: string | null;
+  bank_ifsc: string | null;
+
+  perm: Address | null;
+  current: Address | null;
+
+  badge_token: string;
+};
+
+export type EmployeeDoc = {
+  id: number;
+  employee_id: number;
+  doc_type: string;
+  file_s3_key: string;
+  file_url: string | null;
+  original_filename: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  issue_date: string | null;
+  expiry_date: string | null;
+  status: string;
+  verified_at: string | null;
+  uploaded_at: string;
+};
+
+export type EmployeeExperience = {
+  id: number;
+  employee_id: number;
+  employer_name: string;
+  designation: string | null;
+  from_date: string | null;
+  to_date: string | null;
+  ctc_per_annum: number | null;
+  reason_for_leaving: string | null;
+  has_relieving_letter: boolean;
+  notes: string | null;
+};
+
+export type OnboardingItem = {
+  id: number;
+  employee_id: number;
+  template_item_id: number;
+  item_key: string;
+  label: string;
+  category: string | null;
+  sort_order: number;
+  status: "pending" | "done" | "skipped";
+  completed_at: string | null;
+  notes: string | null;
+};
+
+export type OnboardingProgress = {
+  employee_id: number;
+  total: number;
+  done: number;
+  pending: number;
+  skipped: number;
+  items: OnboardingItem[];
+};
+
+export type AttendanceEvent = {
+  id: number;
+  employee_id: number;
+  event_type: "in" | "out";
+  event_time: string;
+  source: string | null;
+  station: string | null;
+};
+
+export type ClockResult = {
+  employee_id: number;
+  employee_code: string;
+  employee_name: string;
+  event: AttendanceEvent;
+};
+
+export type SalarySlip = {
+  id: number;
+  payroll_run_id: number;
+  employee_id: number;
+  employee_code: string | null;
+  employee_name: string | null;
+  days_present: number;
+  hours_worked: number;
+  gross: number;
+  pf_employee: number;
+  esi_employee: number;
+  tds: number;
+  professional_tax: number;
+  other_deductions: number;
+  net: number;
+  generated_at: string;
+};
+
+export function getMyEmployee(): Promise<Employee> {
+  return request<Employee>(`/employees/me`);
+}
+
+export function clockBadge(badge_token: string, opts: { event_type?: "in" | "out"; station?: string } = {}): Promise<ClockResult> {
+  return request<ClockResult>(`/attendance/clock`, {
+    method: "POST",
+    body: JSON.stringify({ badge_token, source: "mobile_qr", ...opts }),
+  });
+}
+
+export function listMyAttendance(days = 14): Promise<AttendanceEvent[]> {
+  return request<AttendanceEvent[]>(`/attendance/me?days=${days}`);
+}
+
+export function listMySlips(): Promise<SalarySlip[]> {
+  return request<SalarySlip[]>(`/payroll/me/slips`);
+}
+
+export function listMyDocuments(): Promise<EmployeeDoc[]> {
+  return request<EmployeeDoc[]>(`/employees/me/documents`);
+}
+
+export function listMyExperience(): Promise<EmployeeExperience[]> {
+  return request<EmployeeExperience[]>(`/employees/me/experience`);
+}
+
+export function getMyOnboarding(): Promise<OnboardingProgress> {
+  return request<OnboardingProgress>(`/employees/me/onboarding`);
+}
+
+/**
+ * Build an authenticated URL for downloading the current user's salary
+ * slip as a PDF. Used by the Linking.openURL() flow in /my-payslips.
+ * We append the token as a query param because mobile browsers can't
+ * carry an Authorization header into Linking.openURL.
+ *
+ * NB: the backend doesn't accept ?token= today — it expects the
+ * Authorization header. The /my-payslips screen instead downloads via
+ * fetch() with auth, saves to FileSystem, and opens with Sharing —
+ * see that file for the actual flow.
+ */
+export async function getMySlipPdfPath(slipId: number): Promise<string> {
+  const base = await apiBase();
+  return `${base}/payroll/me/slips/${slipId}/pdf`;
+}
+
+export async function authToken(): Promise<string | null> {
+  const s = await loadSession();
+  return s?.token ?? null;
+}

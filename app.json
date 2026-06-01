@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vintract",
     "slug": "vintract-mobile",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "vintract",
@@ -18,7 +18,7 @@
     "android": {
       "package": "com.vintract.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#0b0f1a",
+        "backgroundColor": "#7c3aed",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

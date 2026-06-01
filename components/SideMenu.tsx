@@ -122,6 +122,19 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
         { label: "Reports", icon: <ChartIcon />, webPath: "/reports" },
       ],
     },
+    {
+      title: "HR",
+      items: [
+        { label: "Clock in / out",  icon: <ClockIcon />,   route: "/clock" },
+        { label: "My profile",      icon: <ProfileIcon />, route: "/profile" },
+        { label: "My attendance",   icon: <ClockIcon />,   route: "/my-attendance" },
+        { label: "My documents",    icon: <FolderIcon />,  route: "/my-documents" },
+        { label: "My onboarding",   icon: <ClipboardIcon />, route: "/my-onboarding" },
+        { label: "My payslips",     icon: <RupeeIcon />,   route: "/my-payslips" },
+        ...(isAdmin ? [{ label: "Employees", icon: <ProfileIcon />, webPath: "/admin/employees" } as MenuItem] : []),
+        ...(isAdmin ? [{ label: "Payroll",   icon: <RupeeIcon />,   webPath: "/admin/payroll"   } as MenuItem] : []),
+      ],
+    },
     ...(isAdmin
       ? [
           {
@@ -129,13 +142,15 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
             items: [
               { label: "Users", icon: <ShieldIcon />, webPath: "/admin/users", adminOnly: true },
               { label: "Alerts", icon: <BellIcon />, webPath: "/admin/alerts", adminOnly: true },
+              { label: "Audit log", icon: <ClipboardIcon />, webPath: "/admin/audit", adminOnly: true },
             ],
           },
         ]
       : []),
     {
+      // Profile lives in HR now (My profile). Keep only Sign out here
+      // so the destructive action stays separated from navigation.
       items: [
-        { label: "Profile", icon: <ProfileIcon />, route: "/profile" },
         { label: "Sign out", icon: <SignOutIcon />, destructive: true },
       ],
     },
@@ -331,6 +346,28 @@ function SignOutIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="#dc2626" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+function ClockIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="9" stroke="#7c3aed" strokeWidth={1.8} />
+      <Path d="M12 7v5l3 2" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+function RupeeIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M6 4h12M6 8h12M10 4c4 0 6 2 6 5s-2 5-6 5h-4l8 8" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+function ClipboardIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z M6 6h12v15H6z M9 11h6M9 15h6" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
