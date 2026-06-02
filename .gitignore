@@ -33,6 +33,11 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Google Play service account key — secret; used by `eas submit` to
+# upload AABs to the Internal testing track. NEVER commit this file.
+google-play-service-account.json
+google-play-*.json
+
 # typescript
 *.tsbuildinfo
 
