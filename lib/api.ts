@@ -63,10 +63,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 /** Resolve a scanned barcode to an Item. The backend's GET /items/{sku}
- *  endpoint already strips the trailing per-label serial, so a scan of
- *  e.g. `MTL-CIR-ALUM-242X2.4-7F3A` resolves to the SKU class. */
+ *  endpoint already strips the trailing per-label serial AND the new
+ *  `|Q<qty>` suffix that labels printed after the qty-in-barcode change
+ *  carry, so any scan resolves to the SKU class.
+ *
+ *  Callers that want the qty hint should use `parseQtyHint(raw)`
+ *  separately to extract it from the original scan payload BEFORE
+ *  passing the cleaned code here. */
 export function getItemBySku(sku: string): Promise<Item> {
   return request<Item>(`/items/${encodeURIComponent(sku)}`);
+}
+
+/** Pull the `|Q<qty>` suffix off a freshly-scanned barcode payload.
+ *
+ *  Returns the qty as a number if present, else null. Mirrors the
+ *  backend's `_split_qty_hint` so both sides agree on the parse.
+ *
+ *    "MTL-BRK-MAHE-A-0001|Q10"   -> 10
+ *    "MTL-BRK-MAHE-A-0001|Q7.5"  -> 7.5
+ *    "MTL-BRK-MAHE-A-0001"      -> null  (older label)
+ *    "MTL-BRK-MAHE-A|Qabc"      -> null  (malformed; ignore the hint)
+ */
+export function parseQtyHint(raw: string): number | null {
+  if (!raw || !raw.includes("|Q")) return null;
+  const qtyPart = raw.split("|Q").pop() ?? "";
+  const n = Number(qtyPart);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 // ----- Movements (receive / move / adjust) ---------------------------

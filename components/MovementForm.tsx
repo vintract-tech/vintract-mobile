@@ -31,7 +31,7 @@ import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "./BrandMark";
 import { LightBackground } from "./LightBackground";
 import { SideMenu } from "./SideMenu";
-import { createMovement, getItemBySku, type Item } from "../lib/api";
+import { createMovement, getItemBySku, parseQtyHint, type Item } from "../lib/api";
 import { loadSession } from "../lib/auth";
 
 export type MovementMode = {
@@ -68,9 +68,21 @@ export function MovementScreen({
     if (!value.trim()) return;
     setResolving(true);
     try {
-      const it = await getItemBySku(value.trim());
+      // Pull the `|Q<qty>` suffix BEFORE we send the code to the
+      // backend lookup. Both sides know to strip it, but extracting it
+      // here lets us auto-fill the qty field — saves the operator a
+      // step on every receive.
+      const raw = value.trim();
+      const qtyHint = parseQtyHint(raw);
+      const it = await getItemBySku(raw);
       setItem(it);
       setSku(it.sku_code);
+      // Auto-fill the qty input ONLY when the field is currently empty.
+      // If the operator already typed a qty (or edited it after a
+      // previous scan), don't blow that away.
+      if (qtyHint != null && !qty.trim()) {
+        setQty(String(qtyHint));
+      }
     } catch (e: any) {
       setErr(e?.message ?? "SKU not found");
     } finally {
