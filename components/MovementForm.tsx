@@ -36,10 +36,9 @@ import { loadSession } from "../lib/auth";
 
 export type MovementMode = {
   title: string;
-  subtitle: string;
   kind: "INWARD" | "OUTWARD";
   primaryLabel: string;
-  /** Accent colour for header + button — green for receive, amber for move. */
+  /** Accent colour for header eyebrow + primary button. */
   accent: string;
   /** What the operator's stock change represents (used in success copy). */
   verb: string;
@@ -181,9 +180,8 @@ export function MovementScreen({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.head}>
-              <Text style={[styles.eyebrow, { color: mode.accent }]}>Movement</Text>
+              <Text style={[styles.eyebrow, { color: mode.accent }]}>Inventory</Text>
               <Text style={styles.title}>{mode.title}</Text>
-              <Text style={styles.sub}>{mode.subtitle}</Text>
             </View>
 
             {/* SKU input */}
@@ -291,14 +289,14 @@ export function MovementScreen({
 function MenuIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
 function BackIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -311,7 +309,7 @@ function ScanGlyph() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 18, paddingBottom: 40 },
@@ -334,12 +332,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
 
   head: { marginTop: 8, marginBottom: 14, paddingHorizontal: 4 },
   eyebrow: { fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
-  sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
 
   card: {
     backgroundColor: "#fff",
@@ -366,7 +363,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    color: "#1f1235",
+    color: "#18181b",
     borderColor: "#e2e8f0",
     borderWidth: 1,
     borderRadius: 10,
@@ -398,7 +395,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd6fe",
     borderWidth: 1,
   },
-  resolvedName: { color: "#1f1235", fontSize: 14, fontWeight: "800" },
+  resolvedName: { color: "#18181b", fontSize: 14, fontWeight: "800" },
   resolvedMeta: { color: "#64748b", fontSize: 11, marginTop: 2 },
   resolvedStock: { color: "#475569", fontSize: 13, marginTop: 6, fontWeight: "600" },
   resolvedStockVal: { color: "#7c3aed", fontWeight: "800", fontSize: 14 },

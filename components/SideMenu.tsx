@@ -209,7 +209,7 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
                     onPress={() => handleTap(item)}
                     style={({ pressed }) => [
                       styles.row,
-                      pressed && { backgroundColor: "#f5f3ff" },
+                      pressed && { backgroundColor: "#f4f4f5" },
                       item.destructive && { marginTop: 4 },
                     ]}
                   >
@@ -245,100 +245,100 @@ function CloseIcon() {
 function HomeIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1V9.5z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1V9.5z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function ScanIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M3 12h18" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M3 12h18" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }
 function DownIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 3v14m0 0l-6-6m6 6l6-6M3 21h18" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 3v14m0 0l-6-6m6 6l6-6M3 21h18" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 function TruckIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M1 3h15v13H1zM16 8h4l3 4v4h-7" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
-      <Circle cx="5.5" cy="18.5" r="2.5" stroke="#7c3aed" strokeWidth={1.8} />
-      <Circle cx="18.5" cy="18.5" r="2.5" stroke="#7c3aed" strokeWidth={1.8} />
+      <Path d="M1 3h15v13H1zM16 8h4l3 4v4h-7" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
+      <Circle cx="5.5" cy="18.5" r="2.5" stroke="#52525b" strokeWidth={1.8} />
+      <Circle cx="18.5" cy="18.5" r="2.5" stroke="#52525b" strokeWidth={1.8} />
     </Svg>
   );
 }
 function FolderIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function PrinterIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function FactoryIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M2 20V8l5 3V8l5 3V8l5 3V4h3v16H2z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M2 20V8l5 3V8l5 3V8l5 3V4h3v16H2z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function PackageIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.3 7L12 12l8.7-5M12 22V12" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.3 7L12 12l8.7-5M12 22V12" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function TrashIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function BuildingIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 21V7l9-4 9 4v14M9 21V12h6v9M3 21h18" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M3 21V7l9-4 9 4v14M9 21V12h6v9M3 21h18" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function ChartIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 3v18h18M7 14l4-4 4 4 5-5" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3 3v18h18M7 14l4-4 4 4 5-5" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 function ShieldIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 2l8 4v6c0 5-3.5 8.7-8 10-4.5-1.3-8-5-8-10V6l8-4z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M12 2l8 4v6c0 5-3.5 8.7-8 10-4.5-1.3-8-5-8-10V6l8-4z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function BellIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M6 8a6 6 0 0 1 12 0v4l2 4H4l2-4V8zM10 20a2 2 0 0 0 4 0" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M6 8a6 6 0 0 1 12 0v4l2 4H4l2-4V8zM10 20a2 2 0 0 0 4 0" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 function ProfileIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -352,22 +352,22 @@ function SignOutIcon() {
 function ClockIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="9" stroke="#7c3aed" strokeWidth={1.8} />
-      <Path d="M12 7v5l3 2" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" />
+      <Circle cx="12" cy="12" r="9" stroke="#52525b" strokeWidth={1.8} />
+      <Path d="M12 7v5l3 2" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }
 function RupeeIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M6 4h12M6 8h12M10 4c4 0 6 2 6 5s-2 5-6 5h-4l8 8" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6 4h12M6 8h12M10 4c4 0 6 2 6 5s-2 5-6 5h-4l8 8" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 function ClipboardIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z M6 6h12v15H6z M9 11h6M9 15h6" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z M6 6h12v15H6z M9 11h6M9 15h6" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
   brandTxt: {
-    color: "#1f1235",
+    color: "#18181b",
     fontSize: 14,
     fontWeight: "900",
     marginLeft: 10,
@@ -426,22 +426,22 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "#7c3aed",
+    backgroundColor: "#4f46e5",
     alignItems: "center",
     justifyContent: "center",
   },
   avatarInitial: { color: "#fff", fontWeight: "800", fontSize: 16 },
-  userName: { color: "#1f1235", fontSize: 14, fontWeight: "800" },
+  userName: { color: "#18181b", fontSize: 14, fontWeight: "800" },
   userEmail: { color: "#94a3b8", fontSize: 11, marginTop: 1 },
   rolePill: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: "#f5f3ff",
+    backgroundColor: "#eef2ff",
     borderWidth: 1,
-    borderColor: "#ddd6fe",
+    borderColor: "#c7d2fe",
   },
-  rolePillText: { color: "#6d28d9", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
+  rolePillText: { color: "#3730a3", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
   scroll: { paddingHorizontal: 10, paddingBottom: 24 },
   section: { marginTop: 12 },
   sectionTitle: {
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rowIcon: { width: 22, alignItems: "center" },
-  rowLabel: { flex: 1, color: "#1f1235", fontSize: 14, fontWeight: "600" },
+  rowLabel: { flex: 1, color: "#18181b", fontSize: 14, fontWeight: "600" },
   rowLabelDestructive: { color: "#dc2626" },
   webPill: {
     paddingHorizontal: 6,

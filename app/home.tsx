@@ -98,9 +98,6 @@ export default function HomeScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.heroTitle}>Scan SKU</Text>
-              <Text style={styles.heroSub}>
-                Point at any item barcode or QR — see stock, vendor and alerts.
-              </Text>
             </View>
             <ArrowIcon />
           </Pressable>
@@ -108,15 +105,11 @@ export default function HomeScreen() {
           <Text style={styles.sectionLabel}>Floor actions</Text>
 
           <View style={styles.grid}>
-            <ActionTile title="Receive inward" sub="Scan + qty → ledger." accent="#10b981" onPress={() => router.push("/receive")} />
-            <ActionTile title="Move to floor" sub="Issue stock to production." accent="#f59e0b" onPress={() => router.push("/move")} />
-            <ActionTile title="Production orders" sub="View & mark complete." accent="#7c3aed" onPress={() => router.push("/production" as any)} />
-            <ActionTile title="Waste log" sub="Scrap, QC reject, damage." accent="#dc2626" onPress={() => router.push("/waste")} />
+            <ActionTile title="Receive inward" onPress={() => router.push("/receive")} />
+            <ActionTile title="Move to floor" onPress={() => router.push("/move")} />
+            <ActionTile title="Production orders" onPress={() => router.push("/production" as any)} />
+            <ActionTile title="Waste log" onPress={() => router.push("/waste")} />
           </View>
-
-          <Text style={styles.footnote}>
-            Tap the menu (top-left) for more — Categories, BOM, Vendors and Reports open in the web app.
-          </Text>
         </ScrollView>
       </SafeAreaView>
 
@@ -127,13 +120,9 @@ export default function HomeScreen() {
 
 function ActionTile({
   title,
-  sub,
-  accent,
   onPress,
 }: {
   title: string;
-  sub: string;
-  accent: string;
   onPress: () => void;
 }) {
   return (
@@ -141,9 +130,7 @@ function ActionTile({
       onPress={onPress}
       style={({ pressed }) => [styles.tile, pressed && { opacity: 0.92 }]}
     >
-      <View style={[styles.tileBar, { backgroundColor: accent }]} />
       <Text style={styles.tileTitle}>{title}</Text>
-      <Text style={styles.tileSub}>{sub}</Text>
     </Pressable>
   );
 }
@@ -152,7 +139,7 @@ function ActionTile({
 function KebabIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -178,7 +165,7 @@ function ArrowIcon() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
 
   topBar: {
@@ -205,7 +192,7 @@ const styles = StyleSheet.create({
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
   brand: {
-    color: "#1f1235",
+    color: "#18181b",
     fontSize: 14,
     fontWeight: "900",
     marginLeft: 8,
@@ -215,10 +202,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#7c3aed",
+    backgroundColor: "#4f46e5",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#7c3aed",
+    shadowColor: "#4f46e5",
     shadowOpacity: 0.3,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -231,7 +218,7 @@ const styles = StyleSheet.create({
   greetWrap: { marginTop: 14, marginBottom: 22 },
   greet: { color: "#64748b", fontSize: 15, fontWeight: "500" },
   name: {
-    color: "#1f1235",
+    color: "#18181b",
     fontSize: 30,
     fontWeight: "900",
     letterSpacing: -1,
@@ -244,13 +231,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: "#f5f3ff",
+    backgroundColor: "#eef2ff",
     borderWidth: 1,
-    borderColor: "#ddd6fe",
+    borderColor: "#c7d2fe",
     alignSelf: "flex-start",
   },
   wsDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#10b981", marginRight: 8 },
-  wsPillText: { color: "#5b21b6", fontSize: 12, fontWeight: "700" },
+  wsPillText: { color: "#3730a3", fontSize: 12, fontWeight: "700" },
 
   heroTile: {
     flexDirection: "row",
@@ -258,14 +245,14 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 18,
     borderRadius: 18,
-    backgroundColor: "#7c3aed",
+    backgroundColor: "#4f46e5",
     borderWidth: 1,
-    borderColor: "#6d28d9",
-    shadowColor: "#7c3aed",
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 5,
+    borderColor: "#4338ca",
+    shadowColor: "#4f46e5",
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
     marginBottom: 26,
   },
   heroIconWrap: {
@@ -277,7 +264,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   heroTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
-  heroSub: { color: "rgba(237, 233, 254, 0.95)", fontSize: 12, marginTop: 3, lineHeight: 16 },
 
   sectionLabel: {
     color: "#64748b",
@@ -291,26 +277,19 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   tile: {
     width: "47.5%",
-    minHeight: 100,
+    minHeight: 72,
     padding: 14,
     borderRadius: 14,
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#e4e4e7",
     overflow: "hidden",
+    justifyContent: "center",
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
-  tileBar: {
-    position: "absolute",
-    left: 0, top: 0, bottom: 0,
-    width: 4,
-  },
-  tileTitle: { color: "#1f1235", fontSize: 14, fontWeight: "800", marginTop: 2 },
-  tileSub: { color: "#64748b", fontSize: 11, marginTop: 4, lineHeight: 14 },
-
-  footnote: { color: "#94a3b8", fontSize: 11, textAlign: "center", marginTop: 24 },
+  tileTitle: { color: "#18181b", fontSize: 14, fontWeight: "700" },
 });

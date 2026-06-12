@@ -175,15 +175,12 @@ export default function ProfileScreen() {
 
             {/* HR profile sections — only render when we have data */}
             {empLoading && (
-              <View style={styles.skel}><ActivityIndicator color="#7c3aed" /></View>
+              <View style={styles.skel}><ActivityIndicator color="#334155" /></View>
             )}
             {empErr && !empLoading && (
               <View style={styles.warnBox}>
                 <Text style={styles.warnTxt}>{empErr}</Text>
-                <Text style={styles.warnSub}>
-                  Your user account isn't linked to an HR profile yet. Ask admin to set it up
-                  so you can see attendance, payslips and onboarding.
-                </Text>
+                <Text style={styles.warnSub}>Ask your admin to link your HR profile.</Text>
               </View>
             )}
 
@@ -225,10 +222,7 @@ export default function ProfileScreen() {
                 )}
 
                 <Section title="Statutory IDs">
-                  <Note>
-                    Bank account and Aadhaar numbers are encrypted at rest. We show
-                    only the last 4 digits here.
-                  </Note>
+                  <Note>Only the last 4 digits are shown.</Note>
                   <KV label="PAN" value={emp.pan || "—"} mono />
                   <KV label="Aadhaar" value={emp.aadhaar_masked || "—"} mono />
                   <KV label="UAN" value={emp.uan || "—"} mono />
@@ -382,14 +376,14 @@ function Field({ label, value, onChangeText, secureTextEntry }:
 function MenuIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
 function BackIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -402,7 +396,7 @@ function SignOutIcon() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 18, paddingBottom: 40 },
@@ -417,32 +411,32 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
 
   head: { marginTop: 8, marginBottom: 14 },
-  eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
+  eyebrow: { color: "#334155", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
 
   heroCard: {
-    backgroundColor: "#fff", borderColor: "#ddd6fe", borderWidth: 1, borderRadius: 16,
+    backgroundColor: "#fff", borderColor: "#e4e4e7", borderWidth: 1, borderRadius: 16,
     padding: 16, marginBottom: 12,
-    shadowColor: "#7c3aed", shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 2,
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 2,
   },
   heroRow: { flexDirection: "row", alignItems: "center", gap: 14 },
   heroSub: { color: "#475569", fontSize: 12, marginTop: 10 },
-  avatarWrap: { width: 64, height: 64, borderRadius: 32, overflow: "hidden", backgroundColor: "#f5f3ff" },
+  avatarWrap: { width: 64, height: 64, borderRadius: 32, overflow: "hidden", backgroundColor: "#f1f5f9" },
   avatarImg: { width: 64, height: 64 },
   avatar: {
     width: 64, height: 64, borderRadius: 32,
-    backgroundColor: "#7c3aed", alignItems: "center", justifyContent: "center",
+    backgroundColor: "#334155", alignItems: "center", justifyContent: "center",
   },
   avatarInitial: { color: "#fff", fontWeight: "900", fontSize: 24 },
-  userName: { color: "#1f1235", fontSize: 18, fontWeight: "800" },
-  preferred: { color: "#7c3aed", fontSize: 12, fontStyle: "italic", marginTop: 1 },
+  userName: { color: "#18181b", fontSize: 18, fontWeight: "800" },
+  preferred: { color: "#334155", fontSize: 12, fontStyle: "italic", marginTop: 1 },
   userEmail: { color: "#64748b", fontSize: 12, marginTop: 2 },
   pillRow: { flexDirection: "row", gap: 6, marginTop: 8 },
-  rolePill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: "#f5f3ff", borderColor: "#ddd6fe", borderWidth: 1 },
-  rolePillTxt: { color: "#6d28d9", fontSize: 10, fontWeight: "800", letterSpacing: 0.6 },
+  rolePill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: "#f1f5f9", borderColor: "#cbd5e1", borderWidth: 1 },
+  rolePillTxt: { color: "#334155", fontSize: 10, fontWeight: "800", letterSpacing: 0.6 },
   codePill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: "#fef3c7", borderColor: "#fde68a", borderWidth: 1 },
   codePillTxt: { color: "#a16207", fontSize: 10, fontWeight: "800", letterSpacing: 0.6 },
 
@@ -450,13 +444,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1, borderRadius: 14,
     padding: 14, marginBottom: 12,
   },
-  sectionTitle: { color: "#1f1235", fontSize: 13, fontWeight: "800", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.8 },
+  sectionTitle: { color: "#18181b", fontSize: 13, fontWeight: "800", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.8 },
   kvRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
   kvLabel: { color: "#64748b", fontSize: 12, fontWeight: "600", flex: 0.9 },
-  kvValue: { color: "#1f1235", fontSize: 13, fontWeight: "700", flex: 1.1, textAlign: "right" },
+  kvValue: { color: "#18181b", fontSize: 13, fontWeight: "700", flex: 1.1, textAlign: "right" },
   kvMono: { fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace", fontSize: 12 },
   noteTxt: { color: "#92400e", backgroundColor: "#fef3c7", borderColor: "#fde68a", borderWidth: 1, padding: 8, borderRadius: 8, fontSize: 11, marginBottom: 8 },
-  addrLine: { color: "#1f1235", fontSize: 13, lineHeight: 18 },
+  addrLine: { color: "#18181b", fontSize: 13, lineHeight: 18 },
   salaryNote: { color: "#64748b", fontSize: 11, marginTop: 8, fontStyle: "italic" },
 
   skel: { backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1, borderRadius: 14, padding: 24, alignItems: "center", marginBottom: 12 },
@@ -469,19 +463,19 @@ const styles = StyleSheet.create({
     borderRadius: 14, padding: 14, marginBottom: 12,
   },
   wsLabel: { color: "#64748b", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8 },
-  wsName: { color: "#1f1235", fontSize: 15, fontWeight: "800", marginTop: 4 },
-  wsCode: { color: "#7c3aed", fontSize: 12, marginTop: 2, fontWeight: "700" },
+  wsName: { color: "#18181b", fontSize: 15, fontWeight: "800", marginTop: 4 },
+  wsCode: { color: "#334155", fontSize: 12, marginTop: 2, fontWeight: "700" },
   wsUrl: { color: "#94a3b8", fontSize: 11, marginTop: 6 },
 
   card: {
     backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1,
     borderRadius: 16, padding: 16, marginBottom: 14,
   },
-  cardTitle: { color: "#1f1235", fontSize: 15, fontWeight: "800", marginBottom: 12 },
+  cardTitle: { color: "#18181b", fontSize: 15, fontWeight: "800", marginBottom: 12 },
   field: { marginBottom: 12 },
   fieldLabel: { color: "#475569", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 },
   input: {
-    backgroundColor: "#f8fafc", color: "#1f1235",
+    backgroundColor: "#f8fafc", color: "#18181b",
     borderColor: "#e2e8f0", borderWidth: 1, borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 10, fontSize: 14,
   },
@@ -490,7 +484,7 @@ const styles = StyleSheet.create({
   okBox: { backgroundColor: "#ecfdf5", borderColor: "#a7f3d0", borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 10 },
   okText: { color: "#065f46", fontSize: 13, fontWeight: "700" },
 
-  primary: { backgroundColor: "#7c3aed", paddingVertical: 12, borderRadius: 10, alignItems: "center", marginTop: 4 },
+  primary: { backgroundColor: "#334155", paddingVertical: 12, borderRadius: 10, alignItems: "center", marginTop: 4 },
   primaryText: { color: "#fff", fontSize: 14, fontWeight: "800" },
 
   signOut: {

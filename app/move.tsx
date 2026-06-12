@@ -8,10 +8,9 @@ export default function MoveScreen() {
       preSku={sku}
       mode={{
         title: "Move to floor",
-        subtitle: "Issue stock from store to production.",
         kind: "OUTWARD",
         primaryLabel: "Save outward",
-        accent: "#f59e0b",
+        accent: "#7c3aed",
         verb: "Issued",
       }}
     />

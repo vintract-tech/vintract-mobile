@@ -91,18 +91,14 @@ export default function MyDocumentsScreen() {
         <View style={styles.head}>
           <Text style={styles.eyebrow}>HR</Text>
           <Text style={styles.title}>My documents</Text>
-          <Text style={styles.sub}>What HR has on file for you. Tap a row to view.</Text>
         </View>
 
-        {loading && <View style={styles.center}><ActivityIndicator color="#7c3aed" /></View>}
+        {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
         {err && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
         {!loading && !err && docs.length === 0 && (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyTitle}>No documents uploaded yet</Text>
-            <Text style={styles.emptyBody}>
-              Your admin will upload onboarding documents as they collect them. They'll show up here.
-            </Text>
           </View>
         )}
 
@@ -150,41 +146,41 @@ function DocRow({ doc, onPress }: { doc: EmployeeDoc; onPress: () => void }) {
   );
 }
 
-function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
-function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
+function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
+function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
 function DocIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z" stroke="#7c3aed" strokeWidth={1.8} strokeLinejoin="round" />
-      <Path d="M14 3v6h6M8 13h8M8 17h5" stroke="#7c3aed" strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z" stroke="#0d9488" strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M14 3v6h6M8 13h8M8 17h5" stroke="#0d9488" strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0", alignItems: "center", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
   head: { paddingHorizontal: 22, marginTop: 4, marginBottom: 14 },
-  eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
+  eyebrow: { color: "#0d9488", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
   sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
   center: { paddingVertical: 40, alignItems: "center" },
   errBox: { marginHorizontal: 18, padding: 12, backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10 },
   errText: { color: "#b91c1c", fontSize: 13 },
   emptyCard: { marginHorizontal: 18, padding: 20, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1 },
-  emptyTitle: { color: "#1f1235", fontSize: 16, fontWeight: "800" },
+  emptyTitle: { color: "#18181b", fontSize: 16, fontWeight: "800" },
   emptyBody: { color: "#64748b", fontSize: 13, marginTop: 6 },
   row: {
     flexDirection: "row", alignItems: "center", gap: 12,
     backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1,
     borderRadius: 12, padding: 12, marginBottom: 10,
   },
-  docIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: "#f5f3ff", alignItems: "center", justifyContent: "center" },
-  docName: { color: "#1f1235", fontSize: 14, fontWeight: "800" },
+  docIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: "#f0fdfa", alignItems: "center", justifyContent: "center" },
+  docName: { color: "#18181b", fontSize: 14, fontWeight: "800" },
   docMeta: { color: "#64748b", fontSize: 11, marginTop: 2 },
   docExpiry: { color: "#92400e", fontSize: 11, marginTop: 2, fontWeight: "700" },
   statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },

@@ -77,9 +77,8 @@ export default function ScanScreen() {
         </View>
 
         <View style={styles.head}>
-          <Text style={styles.eyebrow}>Step 1</Text>
+          <Text style={styles.eyebrow}>Inventory</Text>
           <Text style={styles.title}>Scan an SKU</Text>
-          <Text style={styles.sub}>Point the camera at any barcode or QR.</Text>
         </View>
 
         {/* Camera viewer */}
@@ -152,20 +151,20 @@ export default function ScanScreen() {
 function MenuIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
 function BackIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
 
   topBar: {
@@ -187,7 +186,7 @@ const styles = StyleSheet.create({
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
   brand: {
-    color: "#1f1235",
+    color: "#18181b",
     fontSize: 14,
     fontWeight: "900",
     marginLeft: 8,
@@ -196,8 +195,7 @@ const styles = StyleSheet.create({
 
   head: { paddingHorizontal: 22, marginTop: 8, marginBottom: 14 },
   eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
-  sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
 
   viewerWrap: {
     marginHorizontal: 18,
@@ -260,7 +258,7 @@ const styles = StyleSheet.create({
   manualInput: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    color: "#1f1235",
+    color: "#18181b",
     borderColor: "#e2e8f0",
     borderWidth: 1,
     borderRadius: 10,

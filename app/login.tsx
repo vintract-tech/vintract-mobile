@@ -84,7 +84,7 @@ export default function LoginScreen() {
         <Svg width="100%" height="100%" opacity={0.5}>
           <Defs>
             <Pattern id="lightdots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-              <Circle cx="2" cy="2" r="1" fill="rgba(124, 58, 237, 0.22)" />
+              <Circle cx="2" cy="2" r="1" fill="rgba(113, 113, 122, 0.22)" />
             </Pattern>
           </Defs>
           <Rect width="100%" height="100%" fill="url(#lightdots)" />
@@ -166,16 +166,6 @@ export default function LoginScreen() {
                   </Pressable>
                 </View>
               </View>
-
-              <Text style={styles.footer}>
-                Need help or an account?{" "}
-                <Text
-                  style={styles.footerLink}
-                  onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
-                >
-                  {SUPPORT_EMAIL}
-                </Text>
-              </Text>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -211,7 +201,7 @@ function Field(props: {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   flex: { flex: 1 },
   topBar: {
@@ -223,7 +213,7 @@ const styles = StyleSheet.create({
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
   brand: {
-    color: "#1f1235",
+    color: "#18181b",
     fontSize: 16,
     fontWeight: "900",
     marginLeft: 10,
@@ -234,7 +224,7 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: "rgba(124, 58, 237, 0.25)",
+    borderColor: "rgba(79, 70, 229, 0.25)",
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
@@ -243,7 +233,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
   },
-  helpQ: { color: "#7c3aed", fontSize: 14, fontWeight: "800" },
+  helpQ: { color: "#4f46e5", fontSize: 14, fontWeight: "800" },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",
@@ -256,16 +246,16 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "rgba(124, 58, 237, 0.08)",
-    shadowColor: "#7c3aed",
-    shadowOpacity: 0.15,
+    borderColor: "#e4e4e7",
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 10 },
     // Android shadow
     elevation: 4,
   },
   signIn: {
-    color: "#1f1235",
+    color: "#18181b",
     fontSize: 22,
     fontWeight: "800",
     marginBottom: 18,
@@ -282,7 +272,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "#f8fafc",
-    color: "#1f1235",
+    color: "#18181b",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -306,26 +296,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 10,
   },
-  link: { color: "#7c3aed", fontSize: 13, fontWeight: "700" },
+  link: { color: "#4f46e5", fontSize: 13, fontWeight: "700" },
   primary: {
-    backgroundColor: "#7c3aed",
+    backgroundColor: "#4f46e5",
     paddingVertical: 12,
     paddingHorizontal: 26,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: "center",
     minWidth: 120,
-    shadowColor: "#7c3aed",
+    shadowColor: "#4f46e5",
     shadowOpacity: 0.35,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
   primaryText: { color: "#fff", fontSize: 15, fontWeight: "700", letterSpacing: 0.3 },
-  footer: {
-    color: "#64748b",
-    fontSize: 12,
-    marginTop: 16,
-    textAlign: "center",
-  },
-  footerLink: { color: "#7c3aed", fontWeight: "700" },
 });

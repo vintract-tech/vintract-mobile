@@ -23,11 +23,11 @@ export default function BootScreen() {
 
   return (
     <View style={styles.center}>
-      <ActivityIndicator size="large" color="#8b5cf6" />
+      <ActivityIndicator size="large" color="#4f46e5" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0b0f1a" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fafafa" },
 });

@@ -8,10 +8,9 @@ export default function ReceiveScreen() {
       preSku={sku}
       mode={{
         title: "Receive inward",
-        subtitle: "Add stock that just arrived at the warehouse.",
         kind: "INWARD",
         primaryLabel: "Save inward",
-        accent: "#10b981",
+        accent: "#7c3aed",
         verb: "Added",
       }}
     />

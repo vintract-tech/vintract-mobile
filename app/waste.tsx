@@ -24,13 +24,13 @@ import { SideMenu } from "../components/SideMenu";
 import { getItemBySku, logWaste, type Item, type WasteReason } from "../lib/api";
 import { loadSession } from "../lib/auth";
 
-const REASONS: { key: WasteReason; label: string; sub: string }[] = [
-  { key: "damaged",     label: "Damaged",     sub: "Physical damage in handling" },
-  { key: "qc_reject",   label: "QC reject",   sub: "Failed quality check" },
-  { key: "rework_scrap",label: "Rework scrap",sub: "Trimmed off during rework" },
-  { key: "expired",     label: "Expired",     sub: "Past use-by date" },
-  { key: "spoilage",    label: "Spoilage",    sub: "Environmental degradation" },
-  { key: "other",       label: "Other",       sub: "Use note to explain" },
+const REASONS: { key: WasteReason; label: string }[] = [
+  { key: "damaged",      label: "Damaged" },
+  { key: "qc_reject",    label: "QC reject" },
+  { key: "rework_scrap", label: "Rework scrap" },
+  { key: "expired",      label: "Expired" },
+  { key: "spoilage",     label: "Spoilage" },
+  { key: "other",        label: "Other" },
 ];
 
 export default function WasteScreen() {
@@ -124,9 +124,8 @@ export default function WasteScreen() {
         >
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.head}>
-              <Text style={styles.eyebrow}>Operations</Text>
+              <Text style={styles.eyebrow}>Inventory</Text>
               <Text style={styles.title}>Log waste</Text>
-              <Text style={styles.sub}>Record damage, QC rejects, scrap. Stock is decremented automatically.</Text>
             </View>
 
             {/* SKU */}
@@ -180,7 +179,6 @@ export default function WasteScreen() {
                       style={[styles.reasonBtn, selected && styles.reasonBtnSelected]}
                     >
                       <Text style={[styles.reasonLabel, selected && styles.reasonLabelSel]}>{r.label}</Text>
-                      <Text style={[styles.reasonSub, selected && styles.reasonSubSel]}>{r.sub}</Text>
                     </Pressable>
                   );
                 })}
@@ -230,14 +228,14 @@ export default function WasteScreen() {
 function MenuIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
 function BackIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -250,7 +248,7 @@ function ScanGlyph() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 18, paddingBottom: 40 },
@@ -268,12 +266,11 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
 
   head: { marginTop: 8, marginBottom: 14 },
-  eyebrow: { color: "#dc2626", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
-  sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
+  eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
 
   card: {
     backgroundColor: "#fff",
@@ -295,7 +292,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    color: "#1f1235",
+    color: "#18181b",
     borderColor: "#e2e8f0",
     borderWidth: 1,
     borderRadius: 10,
@@ -323,7 +320,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd6fe",
     borderWidth: 1,
   },
-  resolvedName: { color: "#1f1235", fontSize: 14, fontWeight: "800" },
+  resolvedName: { color: "#18181b", fontSize: 14, fontWeight: "800" },
   resolvedStock: { color: "#475569", fontSize: 13, marginTop: 6, fontWeight: "600" },
   resolvedStockVal: { color: "#7c3aed", fontWeight: "800", fontSize: 14 },
 
@@ -336,11 +333,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
   },
-  reasonBtnSelected: { backgroundColor: "#fef2f2", borderColor: "#fca5a5", borderWidth: 2 },
-  reasonLabel: { color: "#1f1235", fontSize: 13, fontWeight: "800" },
-  reasonLabelSel: { color: "#b91c1c" },
-  reasonSub: { color: "#94a3b8", fontSize: 11, marginTop: 2, lineHeight: 14 },
-  reasonSubSel: { color: "#dc2626" },
+  reasonBtnSelected: { backgroundColor: "#f5f3ff", borderColor: "#7c3aed", borderWidth: 2 },
+  reasonLabel: { color: "#18181b", fontSize: 13, fontWeight: "700" },
+  reasonLabelSel: { color: "#5b21b6" },
 
   errBox: { backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 10 },
   errText: { color: "#b91c1c", fontSize: 13, fontWeight: "600" },
@@ -348,16 +343,16 @@ const styles = StyleSheet.create({
   okText: { color: "#065f46", fontSize: 13, fontWeight: "700" },
 
   primary: {
-    backgroundColor: "#dc2626",
+    backgroundColor: "#7c3aed",
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 6,
-    shadowColor: "#dc2626",
-    shadowOpacity: 0.3,
+    shadowColor: "#7c3aed",
+    shadowOpacity: 0.25,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
-  primaryText: { color: "#fff", fontSize: 16, fontWeight: "800", letterSpacing: 0.3 },
+  primaryText: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
 });

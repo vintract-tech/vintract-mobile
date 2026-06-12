@@ -59,10 +59,9 @@ export default function MyOnboardingScreen() {
           <View style={styles.head}>
             <Text style={styles.eyebrow}>HR</Text>
             <Text style={styles.title}>My onboarding</Text>
-            <Text style={styles.sub}>Checklist of what HR needs from you (or for you).</Text>
           </View>
 
-          {loading && <View style={styles.center}><ActivityIndicator color="#7c3aed" /></View>}
+          {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
           {err && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
           {data && (
@@ -85,9 +84,6 @@ export default function MyOnboardingScreen() {
               {data.total === 0 && (
                 <View style={styles.emptyCard}>
                   <Text style={styles.emptyTitle}>No checklist yet</Text>
-                  <Text style={styles.emptyBody}>
-                    Your onboarding checklist will appear once HR finishes setting up your profile.
-                  </Text>
                 </View>
               )}
 
@@ -141,36 +137,36 @@ function groupByCategory(items: OnboardingItem[]): Map<string, OnboardingItem[]>
   return m;
 }
 
-function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
-function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
+function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
+function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
 function CheckIcon() { return (<Svg width={12} height={12} viewBox="0 0 24 24" fill="none"><Path d="M5 12l5 5L20 7" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
 function DashIcon() { return (<Svg width={12} height={12} viewBox="0 0 24 24" fill="none"><Path d="M5 12h14" stroke="#fff" strokeWidth={3} strokeLinecap="round" /></Svg>); }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0", alignItems: "center", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
   head: { paddingHorizontal: 22, marginTop: 4, marginBottom: 14 },
-  eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
+  eyebrow: { color: "#0d9488", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
   sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
   center: { paddingVertical: 40, alignItems: "center" },
   errBox: { marginHorizontal: 18, padding: 12, backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10 },
   errText: { color: "#b91c1c", fontSize: 13 },
 
-  summaryCard: { marginHorizontal: 18, padding: 16, backgroundColor: "#fff", borderRadius: 14, borderColor: "#ddd6fe", borderWidth: 1, marginBottom: 12 },
+  summaryCard: { marginHorizontal: 18, padding: 16, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e4e4e7", borderWidth: 1, marginBottom: 12 },
   summaryRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  pctValue: { color: "#7c3aed", fontSize: 36, fontWeight: "900" },
-  summaryLabel: { color: "#1f1235", fontSize: 14, fontWeight: "800" },
+  pctValue: { color: "#0d9488", fontSize: 36, fontWeight: "900" },
+  summaryLabel: { color: "#18181b", fontSize: 14, fontWeight: "800" },
   summaryMeta: { color: "#64748b", fontSize: 11, marginTop: 4 },
   progressBar: { height: 8, backgroundColor: "#f1f5f9", borderRadius: 4, marginTop: 12, overflow: "hidden" },
-  progressFill: { height: 8, backgroundColor: "#7c3aed", borderRadius: 4 },
+  progressFill: { height: 8, backgroundColor: "#0d9488", borderRadius: 4 },
 
   emptyCard: { marginHorizontal: 18, padding: 20, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1 },
-  emptyTitle: { color: "#1f1235", fontSize: 16, fontWeight: "800" },
+  emptyTitle: { color: "#18181b", fontSize: 16, fontWeight: "800" },
   emptyBody: { color: "#64748b", fontSize: 13, marginTop: 6 },
 
   groupCard: { marginHorizontal: 18, padding: 14, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1, marginBottom: 10 },
@@ -179,7 +175,7 @@ const styles = StyleSheet.create({
   tick: { width: 20, height: 20, borderRadius: 10, backgroundColor: "#f1f5f9", alignItems: "center", justifyContent: "center", marginTop: 2 },
   tickDone: { backgroundColor: "#10b981" },
   tickSkipped: { backgroundColor: "#94a3b8" },
-  itemLabel: { color: "#1f1235", fontSize: 13, fontWeight: "700", lineHeight: 18 },
+  itemLabel: { color: "#18181b", fontSize: 13, fontWeight: "700", lineHeight: 18 },
   itemDoneLabel: { color: "#475569", textDecorationLine: "line-through" },
   itemSkippedLabel: { color: "#94a3b8" },
   itemMeta: { color: "#10b981", fontSize: 10, fontWeight: "700", marginTop: 2 },

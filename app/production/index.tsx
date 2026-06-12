@@ -168,20 +168,20 @@ function formatDate(iso: string): string {
 function MenuIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
 function BackIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   scroll: { paddingHorizontal: 18, paddingBottom: 40 },
 
@@ -198,11 +198,11 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
 
   head: { marginTop: 8, marginBottom: 14 },
   eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
   sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
 
   section: {
@@ -226,20 +226,20 @@ const styles = StyleSheet.create({
   },
   cardHead: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   cardCode: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 0.5 },
-  cardName: { color: "#1f1235", fontSize: 15, fontWeight: "700", marginTop: 2 },
+  cardName: { color: "#18181b", fontSize: 15, fontWeight: "700", marginTop: 2 },
 
   pill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
   pillTxt: { fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 },
 
   progressRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 12 },
-  progressTxt: { color: "#1f1235", fontSize: 14, fontWeight: "800" },
+  progressTxt: { color: "#18181b", fontSize: 14, fontWeight: "800" },
   dueTxt: { color: "#64748b", fontSize: 11 },
   progressBar: { height: 6, borderRadius: 3, backgroundColor: "#f1f5f9", marginTop: 6, overflow: "hidden" },
   progressFill: { height: 6, backgroundColor: "#7c3aed", borderRadius: 3 },
 
   center: { padding: 40, alignItems: "center" },
   emptyCard: { padding: 20, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1 },
-  emptyTitle: { color: "#1f1235", fontSize: 15, fontWeight: "800" },
+  emptyTitle: { color: "#18181b", fontSize: 15, fontWeight: "800" },
   emptyBody: { color: "#64748b", fontSize: 13, marginTop: 4 },
 
   errBox: { backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 10 },

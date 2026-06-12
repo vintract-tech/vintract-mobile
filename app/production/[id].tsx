@@ -242,20 +242,20 @@ function prettyStatus(s: ProductionOrder["status"]): string {
 function MenuIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
 function BackIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 18, paddingBottom: 40 },
@@ -272,10 +272,10 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
 
   eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase", marginTop: 8 },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
   subtitle: { color: "#475569", fontSize: 14, marginTop: 4 },
 
   heroCard: {
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
 
   statusRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 14 },
   statusLabel: { color: "#64748b", fontSize: 12 },
-  statusValue: { color: "#1f1235", fontSize: 13, fontWeight: "800" },
+  statusValue: { color: "#18181b", fontSize: 13, fontWeight: "800" },
 
   metaCard: {
     backgroundColor: "#fff",
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   metaLabel: { color: "#64748b", fontSize: 13 },
-  metaValue: { color: "#1f1235", fontSize: 13, fontWeight: "700", maxWidth: "60%" },
+  metaValue: { color: "#18181b", fontSize: 13, fontWeight: "700", maxWidth: "60%" },
 
   notesCard: {
     backgroundColor: "#f8fafc",
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   notesLabel: { color: "#64748b", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8 },
-  notesText: { color: "#1f1235", fontSize: 13, marginTop: 4, lineHeight: 18 },
+  notesText: { color: "#18181b", fontSize: 13, marginTop: 4, lineHeight: 18 },
 
   card: {
     backgroundColor: "#fff",
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   label: { color: "#475569", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 },
   qtyInput: {
     backgroundColor: "#f8fafc",
-    color: "#1f1235",
+    color: "#18181b",
     borderColor: "#e2e8f0",
     borderWidth: 1,
     borderRadius: 10,
@@ -356,9 +356,9 @@ const styles = StyleSheet.create({
   },
 
   startBtn: {
-    backgroundColor: "#10b981",
+    backgroundColor: "#7c3aed",
     paddingVertical: 14, borderRadius: 12, alignItems: "center", marginTop: 6,
-    shadowColor: "#10b981", shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 4,
+    shadowColor: "#7c3aed", shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 4,
   },
   startBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" },
   savePartial: {

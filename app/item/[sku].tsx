@@ -82,11 +82,7 @@ export default function ItemDetailScreen() {
           {err && !loading && (
             <View style={styles.errBox}>
               <Text style={styles.errTitle}>Not found</Text>
-              <Text style={styles.errBody}>
-                {err}
-                {"\n\n"}
-                If this is a printed label, the SKU may have been archived. Try scanning another.
-              </Text>
+              <Text style={styles.errBody}>{err}</Text>
             </View>
           )}
 
@@ -168,14 +164,14 @@ function MetaRow({ label, value, last }: { label: string; value: string; last?: 
 function MenuIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" />
+      <Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" />
     </Svg>
   );
 }
 function BackIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -194,7 +190,7 @@ function formatQty(n: number): string {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   scroll: { paddingHorizontal: 18, paddingBottom: 40 },
 
@@ -217,7 +213,7 @@ const styles = StyleSheet.create({
   },
   brandRow: { flexDirection: "row", alignItems: "center" },
   brand: {
-    color: "#1f1235",
+    color: "#18181b",
     fontSize: 14,
     fontWeight: "900",
     marginLeft: 8,
@@ -254,19 +250,19 @@ const styles = StyleSheet.create({
 
   heroCard: {
     backgroundColor: "#fff",
-    borderColor: "#ddd6fe",
+    borderColor: "#e4e4e7",
     borderWidth: 1,
     borderRadius: 18,
     padding: 20,
     marginBottom: 16,
-    shadowColor: "#7c3aed",
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   heroCardLow: { borderColor: "#fcd34d", backgroundColor: "#fffbeb" },
-  itemName: { color: "#1f1235", fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
+  itemName: { color: "#18181b", fontSize: 22, fontWeight: "900", letterSpacing: -0.4 },
   itemCode: { color: "#64748b", fontSize: 12, marginTop: 4, fontWeight: "700" },
   stockRow: { marginTop: 18, flexDirection: "row", alignItems: "baseline", gap: 8 },
   stockValue: { color: "#7c3aed", fontSize: 46, fontWeight: "900", letterSpacing: -1.5 },
@@ -309,7 +305,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   metaLabel: { color: "#64748b", fontSize: 13 },
-  metaValue: { color: "#1f1235", fontSize: 13, fontWeight: "700", maxWidth: "60%" },
+  metaValue: { color: "#18181b", fontSize: 13, fontWeight: "700", maxWidth: "60%" },
 
   scanAgain: {
     backgroundColor: "#7c3aed",

@@ -33,14 +33,12 @@ export default function MyPayslipsScreen() {
         <View style={styles.head}>
           <Text style={styles.eyebrow}>HR</Text>
           <Text style={styles.title}>My payslips</Text>
-          <Text style={styles.sub}>Generated when your admin finalises a payroll run.</Text>
         </View>
-        {loading && <View style={styles.center}><ActivityIndicator color="#7c3aed" /></View>}
+        {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
         {err && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
         {!loading && !err && slips.length === 0 && (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyTitle}>No payslips yet</Text>
-            <Text style={styles.emptyBody}>Slips will appear here once your first payroll run is computed.</Text>
           </View>
         )}
         <FlatList
@@ -113,47 +111,47 @@ function SlipCard({ slip }: { slip: SalarySlip }) {
 function DownloadIcon() {
   return (
     <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" stroke="#7c3aed" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" stroke="#0d9488" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
-function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
+function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
+function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0", alignItems: "center", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
   head: { paddingHorizontal: 22, marginTop: 4, marginBottom: 14 },
-  eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
+  eyebrow: { color: "#0d9488", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
   sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
   center: { paddingVertical: 40, alignItems: "center" },
   errBox: { marginHorizontal: 18, padding: 12, backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10 },
   errText: { color: "#b91c1c", fontSize: 13 },
   emptyCard: { marginHorizontal: 18, padding: 20, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1 },
-  emptyTitle: { color: "#1f1235", fontSize: 16, fontWeight: "800" },
+  emptyTitle: { color: "#18181b", fontSize: 16, fontWeight: "800" },
   emptyBody: { color: "#64748b", fontSize: 13, marginTop: 6 },
   card: { backgroundColor: "#fff", borderRadius: 14, padding: 16, marginBottom: 12, borderColor: "#e2e8f0", borderWidth: 1 },
   cardHeadRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  cardTitle: { color: "#1f1235", fontSize: 16, fontWeight: "800" },
+  cardTitle: { color: "#18181b", fontSize: 16, fontWeight: "800" },
   pdfBtn: {
     flexDirection: "row", alignItems: "center", gap: 6,
     paddingHorizontal: 10, paddingVertical: 6,
-    backgroundColor: "#f5f3ff", borderColor: "#ddd6fe", borderWidth: 1,
+    backgroundColor: "#f0fdfa", borderColor: "#99f6e4", borderWidth: 1,
     borderRadius: 999,
   },
-  pdfBtnTxt: { color: "#7c3aed", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
+  pdfBtnTxt: { color: "#0d9488", fontSize: 11, fontWeight: "900", letterSpacing: 0.5 },
   cardRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 },
   label: { color: "#64748b", fontSize: 13 },
-  value: { color: "#1f1235", fontSize: 13, fontWeight: "700" },
+  value: { color: "#18181b", fontSize: 13, fontWeight: "700" },
   valueDeduct: { color: "#94a3b8", fontSize: 13, fontWeight: "600" },
   netRow: { borderTopWidth: 1, borderTopColor: "#e2e8f0", marginTop: 6, paddingTop: 10 },
-  netLabel: { color: "#1f1235", fontSize: 14, fontWeight: "900" },
-  netValue: { color: "#7c3aed", fontSize: 18, fontWeight: "900" },
+  netLabel: { color: "#18181b", fontSize: 14, fontWeight: "900" },
+  netValue: { color: "#0d9488", fontSize: 18, fontWeight: "900" },
   meta: { color: "#94a3b8", fontSize: 11, marginTop: 8 },
 });

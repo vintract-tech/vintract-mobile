@@ -67,7 +67,7 @@ export default function MyAttendanceScreen() {
         <View style={styles.head}>
           <Text style={styles.eyebrow}>HR</Text>
           <Text style={styles.title}>My attendance</Text>
-          <Text style={styles.sub}>Last 30 days · paired IN/OUT shifts</Text>
+          <Text style={styles.sub}>Last 30 days</Text>
         </View>
 
         {!loading && !err && (
@@ -78,15 +78,12 @@ export default function MyAttendanceScreen() {
           </View>
         )}
 
-        {loading && <View style={styles.center}><ActivityIndicator color="#7c3aed" /></View>}
+        {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
         {err && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
         {!loading && !err && shifts.length === 0 && events.length === 0 && (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyTitle}>No clock events yet</Text>
-            <Text style={styles.emptyBody}>
-              Once you scan your badge at a station, your shifts will appear here.
-            </Text>
           </View>
         )}
 
@@ -195,45 +192,45 @@ function localDayKey(iso: string): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
-function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#1f1235" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
+function MenuIcon() { return (<Svg width={20} height={20} viewBox="0 0 24 24" fill="none"><Path d="M4 6h16M4 12h16M4 18h16" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" /></Svg>); }
+function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M19 12H5M12 19l-7-7 7-7" stroke="#18181b" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>); }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#f6f5fb" },
+  root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0", alignItems: "center", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center" },
-  brand: { color: "#1f1235", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
+  brand: { color: "#18181b", fontSize: 14, fontWeight: "900", marginLeft: 8, letterSpacing: 2.2 },
   head: { paddingHorizontal: 22, marginTop: 4, marginBottom: 14 },
-  eyebrow: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
-  title: { color: "#1f1235", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
+  eyebrow: { color: "#0d9488", fontSize: 11, fontWeight: "800", letterSpacing: 1.5, textTransform: "uppercase" },
+  title: { color: "#18181b", fontSize: 26, fontWeight: "900", marginTop: 4, letterSpacing: -0.5 },
   sub: { color: "#64748b", fontSize: 13, marginTop: 4 },
   center: { paddingVertical: 40, alignItems: "center" },
   errBox: { marginHorizontal: 18, padding: 12, backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10 },
   errText: { color: "#b91c1c", fontSize: 13 },
   emptyCard: { marginHorizontal: 18, padding: 20, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1 },
-  emptyTitle: { color: "#1f1235", fontSize: 16, fontWeight: "800" },
+  emptyTitle: { color: "#18181b", fontSize: 16, fontWeight: "800" },
   emptyBody: { color: "#64748b", fontSize: 13, marginTop: 6 },
 
   statRow: { flexDirection: "row", gap: 8, paddingHorizontal: 18, marginBottom: 14 },
   statBox: { flex: 1, backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1, borderRadius: 12, padding: 12 },
-  statAccent: { backgroundColor: "#7c3aed", borderColor: "#7c3aed" },
-  statValue: { color: "#1f1235", fontSize: 20, fontWeight: "900" },
+  statAccent: { backgroundColor: "#0d9488", borderColor: "#0d9488" },
+  statValue: { color: "#18181b", fontSize: 20, fontWeight: "900" },
   statValueAccent: { color: "#fff" },
   statLabel: { color: "#64748b", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6, marginTop: 2 },
-  statLabelAccent: { color: "#ddd6fe" },
+  statLabelAccent: { color: "#99f6e4" },
 
   card: { backgroundColor: "#fff", borderRadius: 14, padding: 14, marginBottom: 10, borderColor: "#e2e8f0", borderWidth: 1 },
   cardOpen: { borderColor: "#fde68a", backgroundColor: "#fffbeb" },
   cardHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  dayLabel: { color: "#1f1235", fontSize: 14, fontWeight: "800" },
-  hoursPill: { color: "#7c3aed", fontSize: 12, fontWeight: "800", backgroundColor: "#f5f3ff", borderColor: "#ddd6fe", borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  dayLabel: { color: "#18181b", fontSize: 14, fontWeight: "800" },
+  hoursPill: { color: "#0f766e", fontSize: 12, fontWeight: "800", backgroundColor: "#f0fdfa", borderColor: "#99f6e4", borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   openPill: { color: "#92400e", fontSize: 10, fontWeight: "900", letterSpacing: 0.8, backgroundColor: "#fef3c7", borderColor: "#fde68a", borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
   times: { flexDirection: "row", alignItems: "center", gap: 8 },
   timeBlock: { flex: 1 },
   timeLabel: { color: "#64748b", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 },
-  timeValue: { color: "#1f1235", fontSize: 16, fontWeight: "800", marginTop: 2 },
+  timeValue: { color: "#18181b", fontSize: 16, fontWeight: "800", marginTop: 2 },
   stationTxt: { color: "#94a3b8", fontSize: 10, marginTop: 2 },
   timeArrow: { paddingHorizontal: 4 },
   timeArrowTxt: { color: "#cbd5e1", fontSize: 16 },
