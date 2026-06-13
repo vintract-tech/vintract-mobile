@@ -44,3 +44,4 @@ google-play-*.json
 # generated native folders
 /ios
 /android
+*.apk
