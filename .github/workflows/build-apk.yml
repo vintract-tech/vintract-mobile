@@ -1,0 +1,85 @@
+name: Build APK
+
+# Builds the release APK on GitHub's runners and uploads it to the
+# versioned downloads bucket. The vintract.com download card points at
+# .../mobile/vintract-mobile-latest.apk.
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # for AWS OIDC
+  contents: read
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ap-south-1
+  ROLE_ARN: arn:aws:iam::764416828771:role/vintract-motley-hosur-inventory-github-prod
+  S3_KEY: s3://vintract-app-downloads-prod-764416828771/mobile/vintract-mobile-latest.apk
+  NDK_VERSION: "27.1.12297006"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Expo prebuild (android)
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Limit ABIs (arm64 + armv7 — real devices only)
+        run: |
+          cd android
+          if grep -q '^reactNativeArchitectures=' gradle.properties; then
+            sed -i 's/^reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a,armeabi-v7a/' gradle.properties
+          else
+            echo 'reactNativeArchitectures=arm64-v8a,armeabi-v7a' >> gradle.properties
+          fi
+
+      - name: Ensure required NDK
+        run: |
+          VER=$(grep -rhoE 'ndkVersion[^0-9]*[0-9][0-9.]+' android/build.gradle android/app/build.gradle 2>/dev/null | grep -oE '[0-9][0-9.]+' | head -1)
+          VER=${VER:-$NDK_VERSION}
+          echo "installing ndk;$VER"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;$VER" "cmake;3.22.1"
+
+      - name: Gradle assembleRelease
+        run: cd android && ./gradlew assembleRelease --no-daemon -x lint
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload APK to S3
+        run: |
+          APK=$(find android/app/build/outputs/apk/release -name '*.apk' | head -1)
+          echo "uploading $APK ($(du -h "$APK" | cut -f1))"
+          aws s3 cp "$APK" "$S3_KEY" --content-type application/vnd.android.package-archive
+          echo "done -> $S3_KEY"
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vintract-mobile-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
