@@ -39,13 +39,31 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Persist Gradle deps + build cache across runs. Cold run is slow;
+      # every run after reuses downloaded deps and cached task outputs.
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      # Avoid re-downloading the ~3GB NDK every run.
+      - name: Cache Android NDK
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk
+          key: ndk-${{ env.NDK_VERSION }}
+
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
       - name: Expo prebuild (android)
         run: npx expo prebuild --platform android --no-install
 
-      - name: Limit ABIs (arm64 + armv7 — real devices only)
+      - name: Configure Gradle (2 ABIs + caching + parallel)
         run: |
           cd android
           if grep -q '^reactNativeArchitectures=' gradle.properties; then
@@ -53,6 +71,11 @@ jobs:
           else
             echo 'reactNativeArchitectures=arm64-v8a,armeabi-v7a' >> gradle.properties
           fi
+          {
+            echo 'org.gradle.caching=true'
+            echo 'org.gradle.parallel=true'
+            echo 'org.gradle.configureondemand=true'
+          } >> gradle.properties
 
       - name: Ensure required NDK
         run: |
@@ -69,7 +92,7 @@ jobs:
           echo "NDK install failed after 3 attempts"; exit 1
 
       - name: Gradle assembleRelease
-        run: cd android && ./gradlew assembleRelease --no-daemon -x lint
+        run: cd android && ./gradlew assembleRelease --no-daemon --build-cache -x lint
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
