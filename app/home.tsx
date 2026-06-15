@@ -7,6 +7,7 @@
  */
 import { useEffect, useState } from "react";
 import {
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -45,6 +46,10 @@ export default function HomeScreen() {
   }, []);
 
   const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
+  // Open the matching page in the full web app (mobile is summary-only).
+  const openWeb = (path: string) => {
+    if (ws?.web_base) void Linking.openURL(`${ws.web_base}${path}`);
+  };
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -102,12 +107,12 @@ export default function HomeScreen() {
           {/* Inventory at a glance — same figures as the web dashboard */}
           <Text style={styles.sectionLabel}>Inventory at a glance</Text>
           <View style={styles.statGrid}>
-            <StatCard label="SKUs" value={stats ? String(stats.total_items) : "—"} />
-            <StatCard label="Stock value" value={summary ? inr(summary.inventory_value) : "—"} />
-            <StatCard label="Low stock" value={stats ? String(stats.low_stock) : "—"} accent="#b45309" tint="#fffbeb" border="#fde68a" />
-            <StatCard label="Out of stock" value={stats ? String(stats.out_of_stock) : "—"} accent="#b91c1c" tint="#fef2f2" border="#fecaca" />
-            <StatCard label="Active vendors" value={summary ? String(summary.vendor_count_active) : "—"} />
-            <StatCard label="Waste (MTD)" value={summary ? inr(summary.waste_cost_mtd) : "—"} />
+            <StatCard label="SKUs" value={stats ? String(stats.total_items) : (summary ? String(summary.sku_count) : "—")} onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Stock value" value={summary ? inr(summary.inventory_value) : "—"} onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Low stock" value={stats ? String(stats.low_stock) : "—"} accent="#b45309" tint="#fffbeb" border="#fde68a" onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Out of stock" value={stats ? String(stats.out_of_stock) : "—"} accent="#b91c1c" tint="#fef2f2" border="#fecaca" onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Active vendors" value={summary ? String(summary.vendor_count_active) : "—"} onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Waste (MTD)" value={summary ? inr(summary.waste_cost_mtd) : "—"} onPress={() => openWeb("/dashboard")} />
           </View>
 
           <Text style={styles.sectionLabel}>Quick actions</Text>
@@ -143,15 +148,22 @@ export default function HomeScreen() {
 }
 
 function StatCard({
-  label, value, accent = "#0f766e", tint = "#ffffff", border = "#e4e4e7",
+  label, value, accent = "#0f766e", tint = "#ffffff", border = "#e4e4e7", onPress,
 }: {
-  label: string; value: string; accent?: string; tint?: string; border?: string;
+  label: string; value: string; accent?: string; tint?: string; border?: string; onPress?: () => void;
 }) {
   return (
-    <View style={[styles.statCard, { backgroundColor: tint, borderColor: border }]}>
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      style={({ pressed }) => [styles.statCard, { backgroundColor: tint, borderColor: border }, pressed && onPress ? { opacity: 0.9 } : null]}
+    >
+      <View style={styles.statTopRow}>
+        <Text style={styles.statLabel}>{label}</Text>
+        {onPress && <Text style={styles.statArrow}>↗</Text>}
+      </View>
       <Text style={[styles.statValue, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -325,8 +337,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
-  statValue: { fontSize: 22, fontWeight: "900", color: "#0f766e", letterSpacing: -0.5 },
-  statLabel: { fontSize: 12, fontWeight: "600", color: "#64748b", marginTop: 2 },
+  statTopRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  statValue: { fontSize: 22, fontWeight: "900", color: "#0f766e", letterSpacing: -0.5, marginTop: 4 },
+  statLabel: { fontSize: 12, fontWeight: "600", color: "#64748b" },
+  statArrow: { fontSize: 13, color: "#94a3b8", fontWeight: "700" },
 
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   tile: {
