@@ -21,11 +21,17 @@ import { LightBackground } from "../components/LightBackground";
 import { SideMenu } from "../components/SideMenu";
 import { loadSession, type AuthUser } from "../lib/auth";
 import { loadWorkspace, type Workspace } from "../lib/workspace";
+import {
+  getInventorySummary, getInventoryStats,
+  type InventorySummary, type InventoryStats,
+} from "../lib/api";
 
 export default function HomeScreen() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ws, setWs] = useState<Workspace | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [summary, setSummary] = useState<InventorySummary | null>(null);
+  const [stats, setStats] = useState<InventoryStats | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -33,7 +39,12 @@ export default function HomeScreen() {
       setWs(w);
       setUser(s?.user ?? null);
     })();
+    // Inventory dashboard figures (same source as the web dashboard).
+    getInventorySummary().then(setSummary).catch(() => {});
+    getInventoryStats().then(setStats).catch(() => {});
   }, []);
+
+  const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -88,6 +99,19 @@ export default function HomeScreen() {
             )}
           </View>
 
+          {/* Inventory at a glance — same figures as the web dashboard */}
+          <Text style={styles.sectionLabel}>Inventory at a glance</Text>
+          <View style={styles.statGrid}>
+            <StatCard label="SKUs" value={stats ? String(stats.total_items) : "—"} />
+            <StatCard label="Stock value" value={summary ? inr(summary.inventory_value) : "—"} />
+            <StatCard label="Low stock" value={stats ? String(stats.low_stock) : "—"} accent="#b45309" tint="#fffbeb" border="#fde68a" />
+            <StatCard label="Out of stock" value={stats ? String(stats.out_of_stock) : "—"} accent="#b91c1c" tint="#fef2f2" border="#fecaca" />
+            <StatCard label="Active vendors" value={summary ? String(summary.vendor_count_active) : "—"} />
+            <StatCard label="Waste (MTD)" value={summary ? inr(summary.waste_cost_mtd) : "—"} />
+          </View>
+
+          <Text style={styles.sectionLabel}>Quick actions</Text>
+
           {/* Primary tile — Scan SKU */}
           <Pressable
             onPress={() => router.push("/scan")}
@@ -114,6 +138,19 @@ export default function HomeScreen() {
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
+    </View>
+  );
+}
+
+function StatCard({
+  label, value, accent = "#0f766e", tint = "#ffffff", border = "#e4e4e7",
+}: {
+  label: string; value: string; accent?: string; tint?: string; border?: string;
+}) {
+  return (
+    <View style={[styles.statCard, { backgroundColor: tint, borderColor: border }]}>
+      <Text style={[styles.statValue, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
@@ -273,6 +310,23 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
     marginBottom: 10,
   },
+
+  statGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 26 },
+  statCard: {
+    width: "47.5%",
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    backgroundColor: "#fff",
+    borderColor: "#e4e4e7",
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  statValue: { fontSize: 22, fontWeight: "900", color: "#0f766e", letterSpacing: -0.5 },
+  statLabel: { fontSize: 12, fontWeight: "600", color: "#64748b", marginTop: 2 },
 
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   tile: {

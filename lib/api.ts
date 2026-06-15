@@ -74,6 +74,30 @@ export function getItemBySku(sku: string): Promise<Item> {
   return request<Item>(`/items/${encodeURIComponent(sku)}`);
 }
 
+// ── Inventory dashboard (same figures as the web dashboard) ──────────────
+export type InventorySummary = {
+  inventory_value: number;
+  sku_count: number;
+  sku_with_cost: number;
+  waste_cost_mtd: number;
+  waste_qty_mtd: number;
+  vendor_count_active: number;
+  vendor_count_total: number;
+  currency: string;
+};
+export type InventoryStats = {
+  total_items: number;
+  low_stock: number;
+  out_of_stock: number;
+  by_category: { category: string; count: number }[];
+};
+export function getInventorySummary(): Promise<InventorySummary> {
+  return request<InventorySummary>(`/items/dashboard/summary`);
+}
+export function getInventoryStats(): Promise<InventoryStats> {
+  return request<InventoryStats>(`/items/stats/summary`);
+}
+
 /** Pull the `|Q<qty>` suffix off a freshly-scanned barcode payload.
  *
  *  Returns the qty as a number if present, else null. Mirrors the
