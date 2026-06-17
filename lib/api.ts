@@ -74,6 +74,12 @@ export function getItemBySku(sku: string): Promise<Item> {
   return request<Item>(`/items/${encodeURIComponent(sku)}`);
 }
 
+/** Browsable inventory list (optionally filtered by a search query). */
+export function listItems(q?: string): Promise<Item[]> {
+  const qs = q && q.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
+  return request<Item[]>(`/items${qs}`);
+}
+
 // ── Inventory dashboard (same figures as the web dashboard) ──────────────
 export type InventorySummary = {
   inventory_value: number;

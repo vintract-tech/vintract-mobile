@@ -134,6 +134,7 @@ export default function HomeScreen() {
           <Text style={styles.sectionLabel}>Floor actions</Text>
 
           <View style={styles.grid}>
+            <ActionTile title="View inventory" onPress={() => router.push("/inventory" as any)} />
             <ActionTile title="Receive inward" onPress={() => router.push("/receive")} />
             <ActionTile title="Move to floor" onPress={() => router.push("/move")} />
             <ActionTile title="Production orders" onPress={() => router.push("/production" as any)} />
