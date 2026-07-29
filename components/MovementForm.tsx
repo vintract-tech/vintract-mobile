@@ -216,7 +216,9 @@ export function MovementScreen({
               )}
               {item && (
                 <View style={styles.resolvedCard}>
-                  <Text style={styles.resolvedName}>{item.sub_category ?? item.category}</Text>
+                  {/* The item's own name — never the sub-category grouping label.
+                      The operator is confirming WHICH item they scanned. */}
+                  <Text style={styles.resolvedName}>{item.category}</Text>
                   <Text style={styles.resolvedMeta}>
                     {item.category_code}
                     {item.size_label ? ` · ${item.size_label}` : ""}

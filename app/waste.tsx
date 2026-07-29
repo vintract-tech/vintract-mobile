@@ -157,7 +157,8 @@ export default function WasteScreen() {
               )}
               {item && (
                 <View style={styles.resolvedCard}>
-                  <Text style={styles.resolvedName}>{item.sub_category ?? item.category}</Text>
+                  {/* The item's own name — never the sub-category grouping label. */}
+                  <Text style={styles.resolvedName}>{item.category}</Text>
                   <Text style={styles.resolvedStock}>
                     On hand: <Text style={styles.resolvedStockVal}>{item.on_hand}</Text>{" "}
                     {item.stock_unit ?? ""}

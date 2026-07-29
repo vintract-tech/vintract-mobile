@@ -90,9 +90,13 @@ export default function ItemDetailScreen() {
             <>
               {/* Hero card */}
               <View style={[styles.heroCard, item.is_low && styles.heroCardLow]}>
-                <Text style={styles.itemName}>{item.sub_category ?? item.category}</Text>
+                {/* Always the item's OWN name/code. (`sub_category` is the optional
+                    grouping tier — shown in the meta card below, never here. The old
+                    `sub_category ?? category` fallback predates the grouping feature,
+                    when sub_category was always null.) */}
+                <Text style={styles.itemName}>{item.category}</Text>
                 <Text style={styles.itemCode}>
-                  {item.sub_category_code ?? item.category_code}
+                  {item.category_code}
                   {item.size_label ? `  ·  ${item.size_label}` : ""}
                 </Text>
 
