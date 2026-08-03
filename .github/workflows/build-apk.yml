@@ -19,7 +19,7 @@ concurrency:
 
 env:
   AWS_REGION: ap-south-1
-  ROLE_ARN: arn:aws:iam::764416828771:role/vintract-motley-hosur-inventory-github-prod
+  ROLE_ARN: arn:aws:iam::764416828771:role/vintract-motley-hosur-github-prod
   S3_KEY: s3://vintract-app-downloads-prod-764416828771/mobile/vintract-mobile-latest.apk
   NDK_VERSION: "27.1.12297006"
 
