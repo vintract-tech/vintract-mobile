@@ -105,17 +105,17 @@ export default function HomeScreen() {
           </View>
 
           {/* Inventory at a glance — same figures as the web dashboard */}
-          <Text style={styles.sectionLabel}>Inventory at a glance</Text>
+          <Text style={styles.sectionLabel}>Inventory At A Glance</Text>
           <View style={styles.statGrid}>
             <StatCard label="SKUs" value={stats ? String(stats.total_items) : (summary ? String(summary.sku_count) : "—")} onPress={() => openWeb("/dashboard")} />
-            <StatCard label="Stock value" value={summary ? inr(summary.inventory_value) : "—"} onPress={() => openWeb("/dashboard")} />
-            <StatCard label="Low stock" value={stats ? String(stats.low_stock) : "—"} accent="#b45309" tint="#fffbeb" border="#fde68a" onPress={() => openWeb("/dashboard")} />
-            <StatCard label="Out of stock" value={stats ? String(stats.out_of_stock) : "—"} accent="#b91c1c" tint="#fef2f2" border="#fecaca" onPress={() => openWeb("/dashboard")} />
-            <StatCard label="Active vendors" value={summary ? String(summary.vendor_count_active) : "—"} onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Stock Value" value={summary ? inr(summary.inventory_value) : "—"} onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Low Stock" value={stats ? String(stats.low_stock) : "—"} accent="#b45309" tint="#fffbeb" border="#fde68a" onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Out Of Stock" value={stats ? String(stats.out_of_stock) : "—"} accent="#b91c1c" tint="#fef2f2" border="#fecaca" onPress={() => openWeb("/dashboard")} />
+            <StatCard label="Active Vendors" value={summary ? String(summary.vendor_count_active) : "—"} onPress={() => openWeb("/dashboard")} />
             <StatCard label="Waste (MTD)" value={summary ? inr(summary.waste_cost_mtd) : "—"} onPress={() => openWeb("/dashboard")} />
           </View>
 
-          <Text style={styles.sectionLabel}>Quick actions</Text>
+          <Text style={styles.sectionLabel}>Quick Actions</Text>
 
           {/* Primary tile — Scan SKU */}
           <Pressable
@@ -131,14 +131,15 @@ export default function HomeScreen() {
             <ArrowIcon />
           </Pressable>
 
-          <Text style={styles.sectionLabel}>Floor actions</Text>
+          <Text style={styles.sectionLabel}>Floor Actions</Text>
 
           <View style={styles.grid}>
-            <ActionTile title="View inventory" onPress={() => router.push("/inventory" as any)} />
-            <ActionTile title="Receive inward" onPress={() => router.push("/receive")} />
-            <ActionTile title="Move to floor" onPress={() => router.push("/move")} />
-            <ActionTile title="Production orders" onPress={() => router.push("/production" as any)} />
-            <ActionTile title="Waste log" onPress={() => router.push("/waste")} />
+            <ActionTile title="View Inventory" onPress={() => router.push("/inventory" as any)} />
+            <ActionTile title="Receive Inward" onPress={() => router.push("/receive")} />
+            <ActionTile title="Move To Floor" onPress={() => router.push("/move")} />
+            <ActionTile title="Production Orders" onPress={() => router.push("/production" as any)} />
+            <ActionTile title="Flow Board" onPress={() => router.push("/production/flow" as any)} />
+            <ActionTile title="Waste Log" onPress={() => router.push("/waste")} />
           </View>
         </ScrollView>
       </SafeAreaView>

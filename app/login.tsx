@@ -62,10 +62,10 @@ export default function LoginScreen() {
 
   function onHelp() {
     Alert.alert(
-      "Need help?",
+      "Need Help?",
       `Contact your administrator or write to ${SUPPORT_EMAIL} for a new account, a workspace code, or a password reset.`,
       [
-        { text: "Email support", onPress: () => Linking.openURL(`mailto:${SUPPORT_EMAIL}`) },
+        { text: "Email Support", onPress: () => Linking.openURL(`mailto:${SUPPORT_EMAIL}`) },
         { text: "Close", style: "cancel" },
       ],
     );
@@ -118,10 +118,10 @@ export default function LoginScreen() {
           >
             <View style={styles.cardWrap}>
               <View style={styles.card}>
-                <Text style={styles.signIn}>Sign in</Text>
+                <Text style={styles.signIn}>Sign In</Text>
 
                 <Field
-                  label="Workspace code"
+                  label="Workspace Code"
                   value={code}
                   onChangeText={(v) => setCode(v.trim())}
                   autoCapitalize="none"
@@ -148,7 +148,7 @@ export default function LoginScreen() {
 
                 <View style={styles.actionRow}>
                   <Pressable onPress={onForgotPassword} hitSlop={8}>
-                    <Text style={styles.link}>Forgot password?</Text>
+                    <Text style={styles.link}>Forgot Password?</Text>
                   </Pressable>
                   <Pressable
                     onPress={onSubmit}
@@ -161,7 +161,7 @@ export default function LoginScreen() {
                     {busy ? (
                       <ActivityIndicator color="#fff" />
                     ) : (
-                      <Text style={styles.primaryText}>Sign in</Text>
+                      <Text style={styles.primaryText}>Sign In</Text>
                     )}
                   </Pressable>
                 </View>

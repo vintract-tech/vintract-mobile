@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vintract",
     "slug": "vintract-mobile",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "vintract",
@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.vintract.mobile",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#342666",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -38,6 +39,12 @@
         {
           "cameraPermission": "Allow Vintract to scan SKU barcodes on the shop floor.",
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow Vintract to photograph employee documents for upload."
         }
       ],
       "expo-secure-store"

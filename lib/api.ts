@@ -74,10 +74,15 @@ export function getItemBySku(sku: string): Promise<Item> {
   return request<Item>(`/items/${encodeURIComponent(sku)}`);
 }
 
-/** Browsable inventory list (optionally filtered by a search query). */
-export function listItems(q?: string): Promise<Item[]> {
-  const qs = q && q.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
-  return request<Item[]>(`/items${qs}`);
+/** Browsable inventory list (optionally filtered by a search query and/or
+ *  a category code — the backend accepts a main category code and expands
+ *  it to every sub-cat underneath). */
+export function listItems(q?: string, category?: string): Promise<Item[]> {
+  const params = new URLSearchParams();
+  if (q && q.trim()) params.set("q", q.trim());
+  if (category && category.trim()) params.set("category", category.trim());
+  const qs = params.toString();
+  return request<Item[]>(`/items${qs ? `?${qs}` : ""}`);
 }
 
 // ── Inventory dashboard (same figures as the web dashboard) ──────────────
@@ -226,16 +231,35 @@ export function logWaste(input: WasteIn): Promise<Waste> {
   });
 }
 
-// ----- Profile / change password -------------------------------------
+// ----- Categories (native browse) ------------------------------------
 
-export function changePassword(old_password: string, new_password: string) {
-  return request<void>("/auth/change-password", {
-    method: "POST",
-    body: JSON.stringify({ old_password, new_password }),
-  });
+/** A row of the two-level category taxonomy. Mains carry `children`
+ *  (their SKUs); leaves carry the live stock split. The backend returns
+ *  far more fields than these — we only type what the app renders. */
+export type CategoryNode = {
+  id: number;
+  code: string;
+  name: string;
+  parent_id: number | null;
+  sku_code: string | null;
+  stock_unit: string | null;
+  on_hand: number;
+  on_floor: number;
+  total_qty: number;
+  is_active: boolean;
+  children: CategoryNode[];
+};
+
+/** Main categories with their SKUs nested (`GET /categories`). */
+export function listCategories(): Promise<CategoryNode[]> {
+  return request<CategoryNode[]>(`/categories`);
 }
 
-// ----- HR: Employee, Attendance, Payslips ----------------------------
+export function getCategory(code: string): Promise<CategoryNode> {
+  return request<CategoryNode>(`/categories/${encodeURIComponent(code)}`);
+}
+
+// ----- HR: employees (managerial) ------------------------------------
 
 export type Address = {
   line1?: string | null;
@@ -246,6 +270,9 @@ export type Address = {
   country?: string | null;
 };
 
+/** Managerial projection of the backend's EmployeeOut. Compensation,
+ *  bank and statutory fields are deliberately NOT typed here — salary
+ *  must never surface in Vintract Ops (it stays on the web + payroll). */
 export type Employee = {
   id: number;
   employee_code: string;
@@ -253,16 +280,13 @@ export type Employee = {
   preferred_name: string | null;
   date_of_birth: string | null;
   gender: string | null;
-  marital_status: string | null;
   blood_group: string | null;
-  nationality: string | null;
   phone: string | null;
   alt_phone: string | null;
   personal_email: string | null;
   emergency_contact_name: string | null;
   emergency_contact_relation: string | null;
   emergency_contact_phone: string | null;
-  photo_s3_key: string | null;
   photo_url: string | null;
 
   designation: string | null;
@@ -274,37 +298,27 @@ export type Employee = {
   confirmation_date: string | null;
   terminated_at: string | null;
   status: string;
+  leave_status: string | null;
   reporting_manager_id: number | null;
   reporting_manager_name: string | null;
 
-  compensation_mode: string;
-  monthly_ctc: number | null;
-  hourly_rate: number | null;
-  daily_rate: number | null;
-  basic_pct: number | null;
-  hra_pct: number | null;
-  conveyance: number | null;
-  medical_allowance: number | null;
-  lta: number | null;
-  other_allowance: number | null;
-
-  pan: string | null;
-  aadhaar_masked: string | null;
-  uan: string | null;
-  esic_number: string | null;
-  passport_number: string | null;
-  bank_holder_name: string | null;
-  bank_name: string | null;
-  bank_branch: string | null;
-  bank_account_type: string | null;
-  bank_account_masked: string | null;
-  bank_ifsc: string | null;
-
   perm: Address | null;
   current: Address | null;
-
-  badge_token: string;
 };
+
+export function listEmployees(q?: string, status?: string): Promise<Employee[]> {
+  const params = new URLSearchParams();
+  if (q && q.trim()) params.set("q", q.trim());
+  if (status) params.set("status", status);
+  const qs = params.toString();
+  return request<Employee[]>(`/employees${qs ? `?${qs}` : ""}`);
+}
+
+export function getEmployee(id: number): Promise<Employee> {
+  return request<Employee>(`/employees/${id}`);
+}
+
+// ----- HR: employee documents ----------------------------------------
 
 export type EmployeeDoc = {
   id: number;
@@ -322,40 +336,65 @@ export type EmployeeDoc = {
   uploaded_at: string;
 };
 
-export type EmployeeExperience = {
-  id: number;
-  employee_id: number;
-  employer_name: string;
-  designation: string | null;
-  from_date: string | null;
-  to_date: string | null;
-  ctc_per_annum: number | null;
-  reason_for_leaving: string | null;
-  has_relieving_letter: boolean;
-  notes: string | null;
-};
+/** Mirror of the backend's DOC_TYPES keys (hr_sub.py). Order matters —
+ *  it is the order the picker shows them in. */
+export const DOC_TYPES: { key: string; label: string }[] = [
+  { key: "photo", label: "Photograph" },
+  { key: "pan", label: "PAN Card" },
+  { key: "aadhaar", label: "Aadhaar" },
+  { key: "cheque", label: "Cancelled Cheque" },
+  { key: "passport", label: "Passport" },
+  { key: "driving_licence", label: "Driving Licence" },
+  { key: "offer_letter", label: "Offer Letter" },
+  { key: "education_10th", label: "Class 10 Marksheet" },
+  { key: "education_12th", label: "Class 12 Marksheet" },
+  { key: "education_grad", label: "Graduation Certificate" },
+  { key: "education_pg", label: "Post-Graduation Certificate" },
+  { key: "experience_letter", label: "Experience Letter" },
+  { key: "contract", label: "Signed Contract" },
+  { key: "other", label: "Other" },
+];
 
-export type OnboardingItem = {
-  id: number;
-  employee_id: number;
-  template_item_id: number;
-  item_key: string;
-  label: string;
-  category: string | null;
-  sort_order: number;
-  status: "pending" | "done" | "skipped";
-  completed_at: string | null;
-  notes: string | null;
-};
+export function listEmployeeDocuments(employeeId: number): Promise<EmployeeDoc[]> {
+  return request<EmployeeDoc[]>(`/employees/${employeeId}/documents`);
+}
 
-export type OnboardingProgress = {
-  employee_id: number;
-  total: number;
-  done: number;
-  pending: number;
-  skipped: number;
-  items: OnboardingItem[];
-};
+/** Upload one document for an employee.
+ *
+ *  Backend contract (hr_sub.upload_document): `doc_type` (and the other
+ *  scalars) travel as QUERY params; the file is the single multipart
+ *  form field named `file`. We must NOT set Content-Type ourselves —
+ *  fetch writes the multipart boundary only when it owns the header. */
+export async function uploadEmployeeDocument(
+  employeeId: number,
+  docType: string,
+  file: { uri: string; name: string; mimeType: string },
+  notes?: string,
+): Promise<EmployeeDoc> {
+  const base = await apiBase();
+  const auth = await authHeaders();
+  const params = new URLSearchParams({ doc_type: docType });
+  if (notes && notes.trim()) params.set("notes", notes.trim());
+  const form = new FormData();
+  // React Native's FormData takes {uri, name, type} for file parts.
+  form.append("file", { uri: file.uri, name: file.name, type: file.mimeType } as any);
+  const res = await fetch(`${base}/employees/${employeeId}/documents?${params.toString()}`, {
+    method: "POST",
+    headers: { Accept: "application/json", ...auth },
+    body: form,
+  });
+  if (!res.ok) {
+    let detail = `${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.detail) detail = String(body.detail);
+    } catch {}
+    throw new Error(detail);
+  }
+  return (await res.json()) as EmployeeDoc;
+}
+
+// ----- HR: attendance (managerial) -----------------------------------
 
 export type AttendanceEvent = {
   id: number;
@@ -364,81 +403,291 @@ export type AttendanceEvent = {
   event_time: string;
   source: string | null;
   station: string | null;
+  note: string | null;
 };
 
-export type ClockResult = {
+/** One row of GET /attendance/daily — the whole company for one day. */
+export type AttendanceDailyRow = {
   employee_id: number;
   employee_code: string;
   employee_name: string;
-  event: AttendanceEvent;
+  department: string | null;
+  designation: string | null;
+  in_time: string | null;
+  out_time: string | null;
+  hours: number | null;
+  status: "present" | "absent" | "in_progress";
+  missing_out: boolean;
+  shift_name: string | null;
+  late: boolean | null;
+  late_by_minutes: number | null;
+  overtime_hours: number | null;
 };
 
-export type SalarySlip = {
-  id: number;
-  payroll_run_id: number;
+/** One row of GET /attendance/summary — per-employee range aggregates. */
+export type AttendanceSummaryRow = {
   employee_id: number;
-  employee_code: string | null;
-  employee_name: string | null;
+  employee_code: string;
+  employee_name: string;
+  department: string | null;
+  designation: string | null;
   days_present: number;
-  hours_worked: number;
-  gross: number;
-  pf_employee: number;
-  esi_employee: number;
-  tds: number;
-  professional_tax: number;
-  other_deductions: number;
-  net: number;
-  generated_at: string;
+  days_absent: number;
+  late_days: number;
+  total_hours: number;
+  overtime_hours: number;
+  missing_out_days: number;
 };
 
-export function getMyEmployee(): Promise<Employee> {
-  return request<Employee>(`/employees/me`);
+/** Company-wide roll-up for one plant-local day (YYYY-MM-DD; omit for today). */
+export function getAttendanceDaily(on?: string): Promise<AttendanceDailyRow[]> {
+  return request<AttendanceDailyRow[]>(`/attendance/daily${on ? `?on=${on}` : ""}`);
 }
 
-export function clockBadge(badge_token: string, opts: { event_type?: "in" | "out"; station?: string } = {}): Promise<ClockResult> {
-  return request<ClockResult>(`/attendance/clock`, {
+export function getAttendanceSummary(from: string, to: string): Promise<AttendanceSummaryRow[]> {
+  return request<AttendanceSummaryRow[]>(`/attendance/summary?from=${from}&to=${to}`);
+}
+
+/** Raw punches for one employee across a date range (both YYYY-MM-DD). */
+export function listEmployeeAttendance(
+  employeeId: number,
+  fromDate: string,
+  toDate: string,
+): Promise<AttendanceEvent[]> {
+  return request<AttendanceEvent[]>(
+    `/attendance/employee/${employeeId}?from_date=${fromDate}&to_date=${toDate}`,
+  );
+}
+
+/** Backfill a missed punch (requires `attendance.correct`). */
+export function addManualPunch(input: {
+  employee_id: number;
+  event_type: "in" | "out";
+  event_time: string; // ISO datetime
+  note?: string;
+}): Promise<AttendanceEvent> {
+  return request<AttendanceEvent>(`/attendance/manual`, {
     method: "POST",
-    body: JSON.stringify({ badge_token, source: "mobile_qr", ...opts }),
+    body: JSON.stringify(input),
   });
 }
 
-export function listMyAttendance(days = 14): Promise<AttendanceEvent[]> {
-  return request<AttendanceEvent[]>(`/attendance/me?days=${days}`);
+/** Fix a wrong punch time/type (requires `attendance.correct`). */
+export function editAttendanceEvent(
+  eventId: number,
+  patch: { event_type?: "in" | "out"; event_time?: string; note?: string },
+): Promise<AttendanceEvent> {
+  return request<AttendanceEvent>(`/attendance/events/${eventId}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
 }
 
-export function listMySlips(): Promise<SalarySlip[]> {
-  return request<SalarySlip[]>(`/payroll/me/slips`);
+// ----- Flow: stages, board, record -----------------------------------
+
+export type Stage = {
+  id: number;
+  code: string;
+  name: string;
+  kind: "PRODUCTION" | "QUALITY" | "PACKING" | "FINISHED";
+  sequence: number;
+  colour: string | null;
+  wip_limit: number | null;
+  description: string | null;
+  is_active: boolean;
+  in_use: boolean;
+};
+
+export function listStages(activeOnly = false): Promise<Stage[]> {
+  return request<Stage[]>(`/stages${activeOnly ? "?active_only=true" : ""}`);
 }
 
-export function listMyDocuments(): Promise<EmployeeDoc[]> {
-  return request<EmployeeDoc[]>(`/employees/me/documents`);
+export type FlowBoardOrder = {
+  order_id: number;
+  order_code: string;
+  product_name: string;
+  priority: string;
+  qty: number;
+  entered_at: string | null;
+  days_waiting: number;
+};
+
+export type FlowBoardStage = {
+  stage_id: number;
+  code: string;
+  name: string;
+  kind: string;
+  colour: string | null;
+  sequence: number;
+  is_active: boolean;
+  wip_limit: number | null;
+  total_qty: number;
+  over_wip_limit: boolean;
+  order_count: number;
+  orders: FlowBoardOrder[];
+};
+
+export type FlowBoard = {
+  generated_at: string;
+  statuses: string[];
+  total_wip: number;
+  order_count: number;
+  bottleneck_stage_ids: number[];
+  stages: FlowBoardStage[];
+};
+
+/** The live kanban: per-stage totals + the orders sitting in each stage.
+ *  `status` is comma-separated order statuses, or "all". */
+export function getFlowBoard(status = "in_progress"): Promise<FlowBoard> {
+  return request<FlowBoard>(`/flow/board?status=${encodeURIComponent(status)}`);
 }
 
-export function listMyExperience(): Promise<EmployeeExperience[]> {
-  return request<EmployeeExperience[]>(`/employees/me/experience`);
+export type OrderFlowStage = {
+  stage_id: number;
+  code: string;
+  name: string;
+  kind: string;
+  colour: string | null;
+  sequence: number;
+  is_optional: boolean;
+  wip_limit: number | null;
+  qty: number;
+  total_entered: number;
+  total_completed: number;
+  total_rejected: number;
+  total_reworked: number;
+  entered_at: string | null;
+  days_waiting: number;
+};
+
+export type OrderFlow = {
+  production_order_id: number;
+  order_code: string;
+  product_name: string;
+  status: string;
+  priority: string;
+  customer: string | null;
+  qty_planned: number;
+  qty_produced: number;
+  qty_wasted: number;
+  qty_in_progress: number;
+  progress_pct: number;
+  target_completion: string | null;
+  actual_completion: string | null;
+  has_route: boolean;
+  current_stage_id: number | null;
+  current_stage_name: string | null;
+  route: OrderFlowStage[];
+};
+
+export function getOrderFlow(orderId: number): Promise<OrderFlow> {
+  return request<OrderFlow>(`/flow/orders/${orderId}`);
 }
 
-export function getMyOnboarding(): Promise<OnboardingProgress> {
-  return request<OnboardingProgress>(`/employees/me/onboarding`);
+export type MaterialLine = {
+  category_id: number;
+  name: string;
+  sku_code: string | null;
+  unit: string | null;
+  consume_stage_id: number | null;
+  consume_stage_name: string | null;
+  qty_per_unit: number;
+  qty_required: number;
+  qty_issued: number;
+  qty_consumed: number;
+  qty_returned: number;
+  qty_on_floor: number;
+  short: boolean;
+  shortfall: number;
+};
+
+export function getOrderMaterials(orderId: number): Promise<MaterialLine[]> {
+  return request<MaterialLine[]>(`/flow/orders/${orderId}/materials`);
 }
 
-/**
- * Build an authenticated URL for downloading the current user's salary
- * slip as a PDF. Used by the Linking.openURL() flow in /my-payslips.
- * We append the token as a query param because mobile browsers can't
- * carry an Authorization header into Linking.openURL.
- *
- * NB: the backend doesn't accept ?token= today — it expects the
- * Authorization header. The /my-payslips screen instead downloads via
- * fetch() with auth, saves to FileSystem, and opens with Sharing —
- * see that file for the actual flow.
- */
-export async function getMySlipPdfPath(slipId: number): Promise<string> {
-  const base = await apiBase();
-  return `${base}/payroll/me/slips/${slipId}/pdf`;
+/** POST /flow/record body. `client_event_id` makes the write idempotent —
+ *  the offline queue replays safely because the server dedupes on it. */
+export type FlowRecordIn = {
+  production_order_id: number;
+  stage_id: number;
+  completed_qty: number;
+  rejected_qty: number;
+  rework_to_stage_id?: number;
+  defect_code?: string;
+  operator?: string;
+  station?: string;
+  note?: string;
+  source: "mobile";
+  client_event_id: string;
+  occurred_at: string; // ISO datetime — when the work actually happened
+};
+
+export type FlowStageBalance = {
+  stage_id: number;
+  stage_code: string;
+  stage_name: string;
+  colour: string | null;
+  sequence: number;
+  qty: number;
+  entered_at: string | null;
+  days_waiting: number;
+};
+
+export type FlowRecordResult = {
+  production_order_id: number;
+  order_code: string;
+  status: string;
+  qty_planned: number;
+  qty_produced: number;
+  qty_wasted: number;
+  applied: boolean; // false = idempotent replay (already recorded)
+  message: string | null;
+  balances: FlowStageBalance[];
+};
+
+export function recordFlow(input: FlowRecordIn): Promise<FlowRecordResult> {
+  return request<FlowRecordResult>(`/flow/record`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
-export async function authToken(): Promise<string | null> {
-  const s = await loadSession();
-  return s?.token ?? null;
+// ----- Admin: users ---------------------------------------------------
+
+export type UserAccount = {
+  id: number;
+  email: string;
+  name: string | null;
+  role: string;
+  is_active: boolean;
+  must_change_password: boolean;
+  created_at: string;
+  last_login_at: string | null;
+};
+
+export type RoleDef = {
+  id: number;
+  name: string;
+  description: string | null;
+  permissions: string[];
+  is_system: boolean;
+  user_count: number;
+};
+
+export function listUsers(): Promise<UserAccount[]> {
+  return request<UserAccount[]>(`/users`);
+}
+
+export function listRoles(): Promise<RoleDef[]> {
+  return request<RoleDef[]>(`/roles`);
+}
+
+export function updateUser(
+  id: number,
+  patch: { name?: string; role?: string; is_active?: boolean },
+): Promise<UserAccount> {
+  return request<UserAccount>(`/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
 }

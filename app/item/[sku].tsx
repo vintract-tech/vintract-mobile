@@ -81,7 +81,7 @@ export default function ItemDetailScreen() {
 
           {err && !loading && (
             <View style={styles.errBox}>
-              <Text style={styles.errTitle}>Not found</Text>
+              <Text style={styles.errTitle}>Not Found</Text>
               <Text style={styles.errBody}>{err}</Text>
             </View>
           )}
@@ -111,7 +111,7 @@ export default function ItemDetailScreen() {
                 {item.is_low && (
                   <View style={styles.lowBadge}>
                     <View style={styles.lowDot} />
-                    <Text style={styles.lowText}>Low stock — below threshold</Text>
+                    <Text style={styles.lowText}>Low Stock — Below Threshold</Text>
                   </View>
                 )}
               </View>
@@ -119,7 +119,7 @@ export default function ItemDetailScreen() {
               {/* Meta card */}
               <View style={styles.metaCard}>
                 <MetaRow label="Category" value={item.category} />
-                <MetaRow label="Sub-category" value={item.sub_category ?? "—"} />
+                <MetaRow label="Sub-Category" value={item.sub_category ?? "—"} />
                 <MetaRow label="Brand" value={item.brand ?? "—"} />
                 <MetaRow label="Supplier" value={item.supplier ?? "—"} />
                 <MetaRow
@@ -134,7 +134,7 @@ export default function ItemDetailScreen() {
                       : "—"
                   }
                 />
-                <MetaRow label="Qty / label" value={String(item.qty_per_label)} />
+                <MetaRow label="Qty / Label" value={String(item.qty_per_label)} />
                 <MetaRow label="Model" value={item.model ?? "—"} />
                 <MetaRow label="Source" value={item.source_label ?? "—"} last />
               </View>
@@ -144,7 +144,7 @@ export default function ItemDetailScreen() {
                 style={({ pressed }) => [styles.scanAgain, pressed && { opacity: 0.9 }]}
               >
                 <ScanGlyph />
-                <Text style={styles.scanAgainText}>Scan another</Text>
+                <Text style={styles.scanAgainText}>Scan Another</Text>
               </Pressable>
             </>
           )}

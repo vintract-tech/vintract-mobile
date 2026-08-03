@@ -69,7 +69,7 @@ export default function ProductionListScreen() {
         >
           <View style={styles.head}>
             <Text style={styles.eyebrow}>Operations</Text>
-            <Text style={styles.title}>Production orders</Text>
+            <Text style={styles.title}>Production Orders</Text>
             <Text style={styles.sub}>{active.length} active, {done.length} closed.</Text>
           </View>
 
@@ -87,7 +87,7 @@ export default function ProductionListScreen() {
 
           {!loading && active.length === 0 && done.length === 0 && !err && (
             <View style={styles.emptyCard}>
-              <Text style={styles.emptyTitle}>No orders yet</Text>
+              <Text style={styles.emptyTitle}>No Orders Yet</Text>
               <Text style={styles.emptyBody}>
                 Production orders created on the web will show up here.
               </Text>

@@ -2,9 +2,10 @@
  * Slide-in side menu — opened from the kebab on the Dashboard top bar.
  * Mirrors the webapp's sidebar so the mobile and web feel like one app.
  *
- * Only Scan SKU is live in v1; everything else is marked SOON and is
- * tappable but routes to a "coming soon" alert. Admin-only entries
- * are filtered out for non-admins by checking the cached session.
+ * Ops is for people RUNNING the factory: inventory, production/Flow and
+ * managerial HR. Personal HR self-service lives in the Vintract People
+ * app. Sections are gated by role/permissions from the cached session
+ * (HR needs hr.view / attendance.view; Admin needs the admin role).
  */
 import { useEffect, useState } from "react";
 import {
@@ -21,7 +22,7 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
 import { BrandMark } from "./BrandMark";
-import { loadSession, logout, type AuthUser } from "../lib/auth";
+import { hasPermission, loadSession, logout, type AuthUser } from "../lib/auth";
 import { loadWorkspace } from "../lib/workspace";
 
 type MenuItem = {
@@ -55,10 +56,10 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
       return;
     }
     if (item.destructive) {
-      Alert.alert("Sign out?", "You will be returned to the login screen.", [
+      Alert.alert("Sign Out?", "You will be returned to the login screen.", [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Sign out",
+          text: "Sign Out",
           style: "destructive",
           onPress: async () => {
             await logout();
@@ -71,7 +72,7 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
     if (item.webPath) {
       const ws = await loadWorkspace();
       if (!ws) {
-        Alert.alert("No workspace", "Sign in again to open this feature.");
+        Alert.alert("No Workspace", "Sign in again to open this feature.");
         return;
       }
       const url = `${ws.web_base}${item.webPath}`;
@@ -88,6 +89,11 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
     Alert.alert(item.label, "Coming in an upcoming release.", [{ text: "OK" }]);
   }
 
+  // Personal HR self-service has moved to the Vintract People app — Ops
+  // keeps only the managerial side. The HR section here is gated on the
+  // hr.view / attendance.view permissions (admin implicitly passes).
+  const showHr = hasPermission(user, "hr.view", "attendance.view");
+
   // Sections mirror the webapp sidebar. Items with `route` are native
   // mobile screens; items with `webPath` open the feature in the device
   // browser (the web app is far better than a phone for those flows).
@@ -101,18 +107,19 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
     {
       title: "Inventory",
       items: [
-        { label: "Receive inward", icon: <DownIcon />, route: "/receive" },
-        { label: "Move to floor", icon: <TruckIcon />, route: "/move" },
-        { label: "Categories", icon: <FolderIcon />, webPath: "/inventory/add/category" },
-        { label: "Print labels", icon: <PrinterIcon />, webPath: "/inventory/labels" },
+        { label: "Receive Inward", icon: <DownIcon />, route: "/receive" },
+        { label: "Move To Floor", icon: <TruckIcon />, route: "/move" },
+        { label: "Categories", icon: <FolderIcon />, route: "/categories" },
+        { label: "Print Labels", icon: <PrinterIcon />, webPath: "/inventory/labels" },
       ],
     },
     {
       title: "Operations",
       items: [
-        { label: "Production orders", icon: <FactoryIcon />, route: "/production" },
+        { label: "Production Orders", icon: <FactoryIcon />, route: "/production" },
+        { label: "Flow Board", icon: <ColumnsIcon />, route: "/production/flow" },
         { label: "Products & BOM", icon: <PackageIcon />, webPath: "/products" },
-        { label: "Waste log", icon: <TrashIcon />, route: "/waste" },
+        { label: "Waste Log", icon: <TrashIcon />, route: "/waste" },
       ],
     },
     {
@@ -122,36 +129,34 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
         { label: "Reports", icon: <ChartIcon />, webPath: "/reports" },
       ],
     },
-    {
-      title: "HR",
-      items: [
-        { label: "Clock in / out",  icon: <ClockIcon />,   route: "/clock" },
-        { label: "My profile",      icon: <ProfileIcon />, route: "/profile" },
-        { label: "My attendance",   icon: <ClockIcon />,   route: "/my-attendance" },
-        { label: "My documents",    icon: <FolderIcon />,  route: "/my-documents" },
-        { label: "My onboarding",   icon: <ClipboardIcon />, route: "/my-onboarding" },
-        { label: "My payslips",     icon: <RupeeIcon />,   route: "/my-payslips" },
-        ...(isAdmin ? [{ label: "Employees", icon: <ProfileIcon />, webPath: "/admin/employees" } as MenuItem] : []),
-        ...(isAdmin ? [{ label: "Payroll",   icon: <RupeeIcon />,   webPath: "/admin/payroll"   } as MenuItem] : []),
-      ],
-    },
+    ...(showHr
+      ? [
+          {
+            title: "HR",
+            items: [
+              { label: "Employees", icon: <ProfileIcon />, route: "/hr/employees" },
+              { label: "Attendance", icon: <ClockIcon />, route: "/hr/attendance" },
+              ...(isAdmin ? [{ label: "Payroll", icon: <RupeeIcon />, webPath: "/admin/payroll" } as MenuItem] : []),
+            ],
+          } as MenuSection,
+        ]
+      : []),
     ...(isAdmin
       ? [
           {
             title: "Admin",
             items: [
-              { label: "Users", icon: <ShieldIcon />, webPath: "/admin/users", adminOnly: true },
+              { label: "Users", icon: <ShieldIcon />, route: "/admin/users", adminOnly: true },
               { label: "Alerts", icon: <BellIcon />, webPath: "/admin/alerts", adminOnly: true },
-              { label: "Audit log", icon: <ClipboardIcon />, webPath: "/admin/audit", adminOnly: true },
+              { label: "Audit Log", icon: <ClipboardIcon />, webPath: "/admin/audit", adminOnly: true },
             ],
           },
         ]
       : []),
     {
-      // Profile lives in HR now (My profile). Keep only Sign out here
-      // so the destructive action stays separated from navigation.
+      // Keep the destructive action separated from navigation.
       items: [
-        { label: "Sign out", icon: <SignOutIcon />, destructive: true },
+        { label: "Sign Out", icon: <SignOutIcon />, destructive: true },
       ],
     },
   ];
@@ -283,6 +288,13 @@ function PrinterIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v7H6z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+function ColumnsIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 4h4v16H4zM10 4h4v10h-4zM16 4h4v13h-4z" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }

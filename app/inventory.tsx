@@ -46,7 +46,7 @@ export default function InventoryScreen() {
           <TextInput
             value={q}
             onChangeText={setQ}
-            placeholder="Search SKU or name…"
+            placeholder="Search SKU Or Name…"
             placeholderTextColor="#9ca3af"
             autoCapitalize="none"
             autoCorrect={false}
@@ -79,7 +79,7 @@ export default function InventoryScreen() {
                     <Text style={[styles.qty, item.is_low && { color: "#b45309" }]}>
                       {item.on_hand}{item.stock_unit ? ` ${item.stock_unit}` : ""}
                     </Text>
-                    {item.is_low && <Text style={styles.low}>low stock</Text>}
+                    {item.is_low && <Text style={styles.low}>Low Stock</Text>}
                   </View>
                 </Pressable>
               );

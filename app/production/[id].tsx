@@ -5,7 +5,7 @@
  *   - enter qty produced and Mark complete
  *   - log waste against this order (shortcut)
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -18,23 +18,28 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
 import { SideMenu } from "../../components/SideMenu";
 import {
+  getOrderFlow,
   getProductionOrder,
   updateProductionOrder,
+  type OrderFlow,
   type ProductionOrder,
 } from "../../lib/api";
+import { hasPermission, loadSession, type AuthUser } from "../../lib/auth";
 
 export default function ProductionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const orderId = Number(id);
 
   const [order, setOrder] = useState<ProductionOrder | null>(null);
+  const [flow, setFlow] = useState<OrderFlow | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -45,9 +50,13 @@ export default function ProductionDetailScreen() {
     setLoading(true);
     setErr(null);
     try {
-      const o = await getProductionOrder(orderId);
+      const [o, s] = await Promise.all([getProductionOrder(orderId), loadSession()]);
       setOrder(o);
+      setUser(s?.user ?? null);
       setQtyInput(String(o.qty_produced || ""));
+      // Flow route + balances — absent (has_route=false) until the order
+      // is started on Flow, and non-fatal if the endpoint errors.
+      getOrderFlow(orderId).then(setFlow).catch(() => setFlow(null));
     } catch (e: any) {
       setErr(e?.message ?? "Failed to load");
     } finally {
@@ -55,7 +64,9 @@ export default function ProductionDetailScreen() {
     }
   }, [orderId]);
 
-  useEffect(() => { if (orderId) refresh(); }, [orderId, refresh]);
+  // Focus, not mount: returning from Record Progress must show the new
+  // stage balances immediately.
+  useFocusEffect(useCallback(() => { if (orderId) refresh(); }, [orderId, refresh]));
 
   async function patch(p: Parameters<typeof updateProductionOrder>[1]) {
     setSubmitting(true);
@@ -63,7 +74,7 @@ export default function ProductionDetailScreen() {
       const o = await updateProductionOrder(orderId, p);
       setOrder(o);
     } catch (e: any) {
-      Alert.alert("Update failed", e?.message ?? "Try again");
+      Alert.alert("Update Failed", e?.message ?? "Try again");
     } finally {
       setSubmitting(false);
     }
@@ -78,11 +89,11 @@ export default function ProductionDetailScreen() {
     if (!order) return;
     const q = parseFloat(qtyInput);
     if (!Number.isFinite(q) || q < 0) {
-      Alert.alert("Invalid qty", "Enter a non-negative produced quantity.");
+      Alert.alert("Invalid Qty", "Enter a non-negative produced quantity.");
       return;
     }
     Alert.alert(
-      "Mark complete?",
+      "Mark Complete?",
       `Produced: ${q}\nPlanned: ${order.qty_planned}\n\nThis closes the order.`,
       [
         { text: "Cancel", style: "cancel" },
@@ -147,10 +158,38 @@ export default function ProductionDetailScreen() {
                 <View style={styles.metaCard}>
                   <MetaRow label="Customer" value={order.customer ?? "—"} />
                   <MetaRow label="Priority" value={order.priority} />
-                  <MetaRow label="Planned start" value={order.planned_start ?? "—"} />
+                  <MetaRow label="Planned Start" value={order.planned_start ?? "—"} />
                   <MetaRow label="Target" value={order.target_completion ?? "—"} />
                   <MetaRow label="Waste" value={String(order.qty_wasted)} last />
                 </View>
+
+                {/* Flow: where the units are right now */}
+                {flow?.has_route && (
+                  <View style={styles.flowCard}>
+                    <Text style={styles.flowTitle}>Stage Balances</Text>
+                    {flow.route.map((r, i) => (
+                      <View
+                        key={r.stage_id}
+                        style={[styles.flowRow, i === flow.route.length - 1 && { borderBottomWidth: 0 }]}
+                      >
+                        <View style={[styles.flowDot, { backgroundColor: r.colour || "#7c3aed" }]} />
+                        <Text style={styles.flowStage} numberOfLines={1}>{r.name}</Text>
+                        {r.qty > 0 && r.days_waiting >= 2 && (
+                          <Text style={styles.flowDays}>{r.days_waiting}d</Text>
+                        )}
+                        <Text style={[styles.flowQty, r.qty <= 0 && { color: "#cbd5e1" }]}>{r.qty}</Text>
+                      </View>
+                    ))}
+                    {hasPermission(user, "floor.operate") && order.status !== "completed" && order.status !== "cancelled" && (
+                      <Pressable
+                        onPress={() => router.push({ pathname: "/production/record", params: { id: String(order.id) } })}
+                        style={({ pressed }) => [styles.recordBtn, pressed && { opacity: 0.85 }]}
+                      >
+                        <Text style={styles.recordBtnTxt}>Record Progress</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
 
                 {order.notes && (
                   <View style={styles.notesCard}>
@@ -166,14 +205,14 @@ export default function ProductionDetailScreen() {
                     disabled={submitting}
                     style={({ pressed }) => [styles.startBtn, (submitting || pressed) && { opacity: 0.85 }]}
                   >
-                    {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.startBtnText}>Start production</Text>}
+                    {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.startBtnText}>Start Production</Text>}
                   </Pressable>
                 )}
 
                 {order.status === "in_progress" && (
                   <>
                     <View style={styles.card}>
-                      <Text style={styles.label}>Qty produced so far</Text>
+                      <Text style={styles.label}>Qty Produced So Far</Text>
                       <TextInput
                         value={qtyInput}
                         onChangeText={setQtyInput}
@@ -186,7 +225,7 @@ export default function ProductionDetailScreen() {
                         onPress={() => patch({ qty_produced: parseFloat(qtyInput) || 0 })}
                         style={({ pressed }) => [styles.savePartial, pressed && { opacity: 0.85 }]}
                       >
-                        <Text style={styles.savePartialText}>Save progress</Text>
+                        <Text style={styles.savePartialText}>Save Progress</Text>
                       </Pressable>
                     </View>
                     <Pressable
@@ -194,7 +233,7 @@ export default function ProductionDetailScreen() {
                       disabled={submitting}
                       style={({ pressed }) => [styles.completeBtn, (submitting || pressed) && { opacity: 0.85 }]}
                     >
-                      {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.completeBtnText}>Mark complete</Text>}
+                      {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.completeBtnText}>Mark Complete</Text>}
                     </Pressable>
                   </>
                 )}
@@ -322,6 +361,28 @@ const styles = StyleSheet.create({
   },
   metaLabel: { color: "#64748b", fontSize: 13 },
   metaValue: { color: "#18181b", fontSize: 13, fontWeight: "700", maxWidth: "60%" },
+
+  flowCard: {
+    backgroundColor: "#fff",
+    borderColor: "#e2e8f0",
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+  },
+  flowTitle: { color: "#475569", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 },
+  flowRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    paddingVertical: 9, borderBottomColor: "#f1f5f9", borderBottomWidth: 1,
+  },
+  flowDot: { width: 8, height: 8, borderRadius: 4 },
+  flowStage: { flex: 1, color: "#18181b", fontSize: 13, fontWeight: "700" },
+  flowDays: { color: "#b45309", fontSize: 11, fontWeight: "800" },
+  flowQty: { color: "#7c3aed", fontSize: 15, fontWeight: "900", minWidth: 34, textAlign: "right" },
+  recordBtn: {
+    backgroundColor: "#7c3aed", paddingVertical: 12, borderRadius: 10, alignItems: "center", marginTop: 12,
+  },
+  recordBtnTxt: { color: "#fff", fontSize: 14, fontWeight: "800" },
 
   notesCard: {
     backgroundColor: "#f8fafc",

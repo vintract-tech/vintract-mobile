@@ -103,7 +103,7 @@ export function MovementScreen({
     }
     if (mode.kind === "OUTWARD" && item.on_hand < q) {
       Alert.alert(
-        "Not enough stock",
+        "Not Enough Stock",
         `On hand: ${item.on_hand} ${item.stock_unit ?? ""}\nMoving: ${q} ${item.stock_unit ?? ""}\n\nContinue anyway?`,
         [
           { text: "Cancel", style: "cancel" },
@@ -224,7 +224,7 @@ export function MovementScreen({
                     {item.size_label ? ` · ${item.size_label}` : ""}
                   </Text>
                   <Text style={styles.resolvedStock}>
-                    On hand: <Text style={styles.resolvedStockVal}>{item.on_hand}</Text>{" "}
+                    On Hand: <Text style={styles.resolvedStockVal}>{item.on_hand}</Text>{" "}
                     {item.stock_unit ?? ""}
                   </Text>
                 </View>
@@ -242,7 +242,7 @@ export function MovementScreen({
                 keyboardType="decimal-pad"
                 style={[styles.input, styles.qtyInput]}
               />
-              <Text style={[styles.label, { marginTop: 14 }]}>Note (optional)</Text>
+              <Text style={[styles.label, { marginTop: 14 }]}>Note (Optional)</Text>
               <TextInput
                 value={note}
                 onChangeText={setNote}

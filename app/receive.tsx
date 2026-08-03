@@ -7,9 +7,9 @@ export default function ReceiveScreen() {
     <MovementScreen
       preSku={sku}
       mode={{
-        title: "Receive inward",
+        title: "Receive Inward",
         kind: "INWARD",
-        primaryLabel: "Save inward",
+        primaryLabel: "Save Inward",
         accent: "#7c3aed",
         verb: "Added",
       }}

@@ -7,9 +7,9 @@ export default function MoveScreen() {
     <MovementScreen
       preSku={sku}
       mode={{
-        title: "Move to floor",
+        title: "Move To Floor",
         kind: "OUTWARD",
-        primaryLabel: "Save outward",
+        primaryLabel: "Save Outward",
         accent: "#7c3aed",
         verb: "Issued",
       }}

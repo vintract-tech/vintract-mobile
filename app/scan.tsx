@@ -78,7 +78,7 @@ export default function ScanScreen() {
 
         <View style={styles.head}>
           <Text style={styles.eyebrow}>Inventory</Text>
-          <Text style={styles.title}>Scan an SKU</Text>
+          <Text style={styles.title}>Scan An SKU</Text>
         </View>
 
         {/* Camera viewer */}
@@ -89,12 +89,12 @@ export default function ScanScreen() {
             </View>
           ) : !permission.granted ? (
             <View style={[styles.viewer, styles.permWrap]}>
-              <Text style={styles.permTitle}>Camera access</Text>
+              <Text style={styles.permTitle}>Camera Access</Text>
               <Text style={styles.permBody}>
                 Allow the camera so you can scan SKUs on the floor.
               </Text>
               <Pressable onPress={requestPermission} style={styles.permBtn}>
-                <Text style={styles.permBtnText}>Allow camera</Text>
+                <Text style={styles.permBtnText}>Allow Camera</Text>
               </Pressable>
             </View>
           ) : (
@@ -119,12 +119,12 @@ export default function ScanScreen() {
 
         {/* Manual entry */}
         <View style={styles.manualCard}>
-          <Text style={styles.manualLabel}>Or type the SKU</Text>
+          <Text style={styles.manualLabel}>Or Type The SKU</Text>
           <View style={styles.manualRow}>
             <TextInput
               value={manualSku}
               onChangeText={setManualSku}
-              placeholder="SKU code"
+              placeholder="SKU Code"
               placeholderTextColor="#a3a3a3"
               autoCapitalize="characters"
               autoCorrect={false}
@@ -136,7 +136,7 @@ export default function ScanScreen() {
               onPress={() => onScanned(manualSku)}
               style={({ pressed }) => [styles.manualBtn, pressed && { opacity: 0.85 }]}
             >
-              <Text style={styles.manualBtnText}>Look up</Text>
+              <Text style={styles.manualBtnText}>Look Up</Text>
             </Pressable>
           </View>
           {wsName ? <Text style={styles.wsLabel}>WORKSPACE · {wsName}</Text> : null}

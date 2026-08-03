@@ -26,8 +26,8 @@ import { loadSession } from "../lib/auth";
 
 const REASONS: { key: WasteReason; label: string }[] = [
   { key: "damaged",      label: "Damaged" },
-  { key: "qc_reject",    label: "QC reject" },
-  { key: "rework_scrap", label: "Rework scrap" },
+  { key: "qc_reject",    label: "QC Reject" },
+  { key: "rework_scrap", label: "Rework Scrap" },
   { key: "expired",      label: "Expired" },
   { key: "spoilage",     label: "Spoilage" },
   { key: "other",        label: "Other" },
@@ -125,7 +125,7 @@ export default function WasteScreen() {
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
             <View style={styles.head}>
               <Text style={styles.eyebrow}>Inventory</Text>
-              <Text style={styles.title}>Log waste</Text>
+              <Text style={styles.title}>Log Waste</Text>
             </View>
 
             {/* SKU */}
@@ -160,7 +160,7 @@ export default function WasteScreen() {
                   {/* The item's own name — never the sub-category grouping label. */}
                   <Text style={styles.resolvedName}>{item.category}</Text>
                   <Text style={styles.resolvedStock}>
-                    On hand: <Text style={styles.resolvedStockVal}>{item.on_hand}</Text>{" "}
+                    On Hand: <Text style={styles.resolvedStockVal}>{item.on_hand}</Text>{" "}
                     {item.stock_unit ?? ""}
                   </Text>
                 </View>
@@ -215,7 +215,7 @@ export default function WasteScreen() {
               disabled={submitting}
               style={({ pressed }) => [styles.primary, (submitting || pressed) && { opacity: 0.85 }]}
             >
-              {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryText}>Save waste entry</Text>}
+              {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryText}>Save Waste Entry</Text>}
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>

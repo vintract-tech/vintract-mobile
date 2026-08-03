@@ -14,9 +14,25 @@ export type AuthUser = {
   id: number;
   email: string;
   name: string | null;
-  role: "admin" | "operator" | "viewer";
+  // Backend allows custom roles beyond the three system ones, so this is a
+  // plain string with the well-known values still inferable.
+  role: "admin" | "operator" | "viewer" | (string & {});
   must_change_password: boolean;
+  // Resolved permission set for the user's role — returned by /auth/login
+  // since the RBAC matrix landed. Sessions cached before that lack it, so
+  // always read through hasPermission() which treats admin as all-access.
+  permissions?: string[];
 };
+
+/** True when the user holds ANY of the given permissions. Admin short-
+ *  circuits to true (the admin system role owns the full catalog), which
+ *  also covers admin sessions cached before `permissions` was returned. */
+export function hasPermission(user: AuthUser | null, ...perms: string[]): boolean {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  const held = user.permissions ?? [];
+  return perms.some((p) => held.includes(p));
+}
 
 export type Session = {
   token: string;
