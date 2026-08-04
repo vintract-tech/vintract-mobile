@@ -1,15 +1,17 @@
 /**
  * Production order detail. Lets the operator:
  *   - see who, what, how many, when
+ *   - see the BOM: Required / Issued / On Floor per material, short lines amber
  *   - tap Start to flip planned → in_progress
  *   - enter qty produced and Mark complete
- *   - log waste against this order (shortcut)
+ *   - log waste against this order, tagged to a route stage
  */
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -23,15 +25,32 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { Screen } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import {
+  getItemBySku,
   getOrderFlow,
+  getOrderMaterials,
   getProductionOrder,
+  logWaste,
   updateProductionOrder,
+  type Item,
+  type MaterialLine,
   type OrderFlow,
   type ProductionOrder,
+  type WasteReason,
 } from "../../lib/api";
 import { hasPermission, loadSession, type AuthUser } from "../../lib/auth";
+
+/** Same enum + labels as the standalone waste screen (app/waste.tsx). */
+const WASTE_REASONS: { key: WasteReason; label: string }[] = [
+  { key: "damaged",      label: "Damaged" },
+  { key: "qc_reject",    label: "QC Reject" },
+  { key: "rework_scrap", label: "Rework Scrap" },
+  { key: "expired",      label: "Expired" },
+  { key: "spoilage",     label: "Spoilage" },
+  { key: "other",        label: "Other" },
+];
 
 export default function ProductionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -39,12 +58,14 @@ export default function ProductionDetailScreen() {
 
   const [order, setOrder] = useState<ProductionOrder | null>(null);
   const [flow, setFlow] = useState<OrderFlow | null>(null);
+  const [materials, setMaterials] = useState<MaterialLine[] | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [qtyInput, setQtyInput] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [wasteOpen, setWasteOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -57,6 +78,8 @@ export default function ProductionDetailScreen() {
       // Flow route + balances — absent (has_route=false) until the order
       // is started on Flow, and non-fatal if the endpoint errors.
       getOrderFlow(orderId).then(setFlow).catch(() => setFlow(null));
+      // BOM lines — non-fatal too (orders without a BOM just hide the card).
+      getOrderMaterials(orderId).then(setMaterials).catch(() => setMaterials(null));
     } catch (e: any) {
       setErr(e?.message ?? "Failed to load");
     } finally {
@@ -119,11 +142,7 @@ export default function ProductionDetailScreen() {
           </Pressable>
         </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={styles.flex}
-        >
-          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Screen scroll contentContainerStyle={styles.scroll}>
             {loading && (
               <View style={styles.center}><ActivityIndicator color="#7c3aed" /></View>
             )}
@@ -191,12 +210,34 @@ export default function ProductionDetailScreen() {
                   </View>
                 )}
 
+                {/* Materials: BOM lines with Required / Issued / On Floor */}
+                {materials != null && materials.length > 0 && (
+                  <View style={styles.matCard}>
+                    <Text style={styles.matTitle}>Materials</Text>
+                    {materials.map((m, i) => (
+                      <MaterialRow
+                        key={m.category_id}
+                        line={m}
+                        last={i === materials.length - 1}
+                      />
+                    ))}
+                  </View>
+                )}
+
                 {order.notes && (
                   <View style={styles.notesCard}>
                     <Text style={styles.notesLabel}>Notes</Text>
                     <Text style={styles.notesText}>{order.notes}</Text>
                   </View>
                 )}
+
+                {/* Log waste against this order, tagged to a route stage. */}
+                <Pressable
+                  onPress={() => setWasteOpen(true)}
+                  style={({ pressed }) => [styles.wasteBtn, pressed && { opacity: 0.85 }]}
+                >
+                  <Text style={styles.wasteBtnTxt}>Log Waste</Text>
+                </Pressable>
 
                 {/* Actions */}
                 {order.status === "planned" && (
@@ -247,12 +288,265 @@ export default function ProductionDetailScreen() {
                 )}
               </>
             )}
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </Screen>
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
+
+      {order && (
+        <WasteModal
+          visible={wasteOpen}
+          onClose={() => setWasteOpen(false)}
+          orderId={order.id}
+          routeStages={flow?.has_route ? flow.route : []}
+          defaultStageId={flow?.current_stage_id ?? null}
+          onLogged={refresh}
+        />
+      )}
     </View>
+  );
+}
+
+/** One BOM line: name + SKU on top, Required / Issued / On Floor below.
+ *  Short lines tint amber and show the shortfall. */
+function MaterialRow({ line, last }: { line: MaterialLine; last?: boolean }) {
+  const unit = line.unit ? ` ${line.unit}` : "";
+  return (
+    <View style={[styles.matRow, line.short && styles.matRowShort, last && { borderBottomWidth: 0 }]}>
+      <View style={styles.matNameRow}>
+        <Text style={styles.matName} numberOfLines={1}>{line.name}</Text>
+        {line.short && (
+          <Text style={styles.matShortBadge}>Short {line.shortfall}{unit}</Text>
+        )}
+      </View>
+      {(line.sku_code || line.consume_stage_name) && (
+        <Text style={styles.matSku} numberOfLines={1}>
+          {line.sku_code ?? "No SKU"}
+          {line.consume_stage_name ? ` · Consumed At ${line.consume_stage_name}` : ""}
+        </Text>
+      )}
+      <View style={styles.matStats}>
+        <MatStat label="Required" value={line.qty_required} short={line.short} />
+        <MatStat label="Issued" value={line.qty_issued} short={line.short} />
+        <MatStat label="On Floor" value={line.qty_on_floor} short={line.short} />
+      </View>
+    </View>
+  );
+}
+
+function MatStat({ label, value, short }: { label: string; value: number; short: boolean }) {
+  return (
+    <View style={styles.matStat}>
+      <Text style={[styles.matStatVal, short && { color: "#b45309" }]}>{value}</Text>
+      <Text style={styles.matStatLabel}>{label}</Text>
+    </View>
+  );
+}
+
+/** Log Waste — small modal form. Item lookup mirrors app/waste.tsx
+ *  (type/scan the SKU, resolve on blur or submit); the entry is tagged
+ *  with this production order and, optionally, a stage on its route. */
+function WasteModal({
+  visible,
+  onClose,
+  orderId,
+  routeStages,
+  defaultStageId,
+  onLogged,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  orderId: number;
+  routeStages: OrderFlow["route"];
+  defaultStageId: number | null;
+  onLogged: () => void;
+}) {
+  const [sku, setSku] = useState("");
+  const [item, setItem] = useState<Item | null>(null);
+  const [resolving, setResolving] = useState(false);
+  const [qty, setQty] = useState("");
+  const [reason, setReason] = useState<WasteReason | null>(null);
+  const [stageId, setStageId] = useState<number | null>(null);
+  const [stageTouched, setStageTouched] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // Default the stage to the order's current stage until the user picks.
+  const onRoute = (sid: number | null) => sid != null && routeStages.some((r) => r.stage_id === sid);
+  const effectiveStageId = stageTouched ? stageId : onRoute(defaultStageId) ? defaultStageId : null;
+
+  async function resolveSku(value: string) {
+    setErr(null);
+    setItem(null);
+    if (!value.trim()) return;
+    setResolving(true);
+    try {
+      const it = await getItemBySku(value.trim());
+      setItem(it);
+      setSku(it.sku_code);
+    } catch (e: any) {
+      setErr(e?.message ?? "SKU not found");
+    } finally {
+      setResolving(false);
+    }
+  }
+
+  function reset() {
+    setSku(""); setItem(null); setQty(""); setReason(null);
+    setStageId(null); setStageTouched(false); setNotes(""); setErr(null);
+  }
+
+  async function submit() {
+    setErr(null);
+    if (!item) { setErr("Type a valid SKU first"); return; }
+    if (!reason) { setErr("Pick a reason"); return; }
+    const q = parseFloat(qty);
+    if (!Number.isFinite(q) || q <= 0) { setErr("Quantity must be a positive number"); return; }
+    setSaving(true);
+    try {
+      const session = await loadSession();
+      const operator = session?.user?.name || session?.user?.email;
+      await logWaste({
+        sku_code: item.sku_code,
+        qty: q,
+        reason,
+        notes: notes.trim() || undefined,
+        operator,
+        production_order_id: orderId,
+        stage_id: effectiveStageId,
+      });
+      reset();
+      onClose();
+      Alert.alert("Waste Logged", `${q} ${item.stock_unit ?? ""} recorded against this order.`.trim());
+      onLogged();
+    } catch (e: any) {
+      setErr(e?.message ?? "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.modalScrim}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.modalWrap}
+        >
+          <View style={styles.modalCard}>
+            <View style={styles.modalHead}>
+              <Text style={styles.modalTitle}>Log Waste</Text>
+              <Pressable onPress={onClose} hitSlop={12}>
+                <Text style={styles.modalClose}>Close</Text>
+              </Pressable>
+            </View>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <Text style={[styles.label, styles.mLabel]}>SKU</Text>
+              <TextInput
+                value={sku}
+                onChangeText={setSku}
+                onBlur={() => resolveSku(sku)}
+                onSubmitEditing={() => resolveSku(sku)}
+                placeholder="Type or scan…"
+                placeholderTextColor="#a3a3a3"
+                autoCapitalize="characters"
+                autoCorrect={false}
+                returnKeyType="search"
+                style={styles.modalInput}
+              />
+              {resolving && (
+                <View style={styles.resolveRow}>
+                  <ActivityIndicator color="#7c3aed" size="small" />
+                  <Text style={styles.resolveTxt}>Looking Up…</Text>
+                </View>
+              )}
+              {item && (
+                <View style={styles.resolvedCard}>
+                  <Text style={styles.resolvedName}>{item.category}</Text>
+                  <Text style={styles.resolvedStock}>
+                    On Hand: <Text style={styles.resolvedStockVal}>{item.on_hand}</Text>{" "}
+                    {item.stock_unit ?? ""}
+                  </Text>
+                </View>
+              )}
+
+              <Text style={[styles.label, styles.mLabel]}>Reason</Text>
+              <View style={styles.reasonGrid}>
+                {WASTE_REASONS.map((r) => {
+                  const on = reason === r.key;
+                  return (
+                    <Pressable
+                      key={r.key}
+                      onPress={() => setReason(r.key)}
+                      style={[styles.reasonBtn, on && styles.reasonBtnOn]}
+                    >
+                      <Text style={[styles.reasonTxt, on && styles.reasonTxtOn]}>{r.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {routeStages.length > 0 && (
+                <>
+                  <Text style={[styles.label, styles.mLabel]}>Stage</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stageRow}>
+                    <Pressable
+                      onPress={() => { setStageTouched(true); setStageId(null); }}
+                      style={[styles.stagePick, effectiveStageId === null && styles.stagePickOn]}
+                    >
+                      <Text style={[styles.stagePickTxt, effectiveStageId === null && styles.stagePickTxtOn]}>
+                        No Stage
+                      </Text>
+                    </Pressable>
+                    {routeStages.map((r) => (
+                      <Pressable
+                        key={r.stage_id}
+                        onPress={() => { setStageTouched(true); setStageId(r.stage_id); }}
+                        style={[styles.stagePick, effectiveStageId === r.stage_id && styles.stagePickOn]}
+                      >
+                        <Text style={[styles.stagePickTxt, effectiveStageId === r.stage_id && styles.stagePickTxtOn]}>
+                          {r.name}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </>
+              )}
+
+              <Text style={[styles.label, styles.mLabel]}>Quantity{item?.stock_unit ? ` (${item.stock_unit})` : ""}</Text>
+              <TextInput
+                value={qty}
+                onChangeText={setQty}
+                keyboardType="decimal-pad"
+                placeholder="0"
+                placeholderTextColor="#a3a3a3"
+                style={[styles.modalInput, styles.modalQty]}
+              />
+
+              <Text style={[styles.label, styles.mLabel]}>Notes</Text>
+              <TextInput
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="What happened?"
+                placeholderTextColor="#a3a3a3"
+                style={styles.modalInput}
+              />
+
+              {err && <View style={[styles.errBox, styles.mLabel]}><Text style={styles.errText}>{err}</Text></View>}
+
+              <Pressable
+                onPress={submit}
+                disabled={saving}
+                style={({ pressed }) => [styles.modalSave, (saving || pressed) && { opacity: 0.85 }]}
+              >
+                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.modalSaveTxt}>Save Waste Entry</Text>}
+              </Pressable>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
   );
 }
 
@@ -297,7 +591,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
   topBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -439,6 +733,84 @@ const styles = StyleSheet.create({
     padding: 14, marginTop: 4,
   },
   closedText: { color: "#64748b", fontSize: 13, textAlign: "center" },
+
+  // Materials (BOM) card
+  matCard: {
+    backgroundColor: "#fff",
+    borderColor: "#e2e8f0",
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+  },
+  matTitle: { color: "#475569", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 },
+  matRow: { paddingVertical: 10, borderBottomColor: "#f1f5f9", borderBottomWidth: 1 },
+  matRowShort: {
+    backgroundColor: "#fffbeb", borderColor: "#fde68a", borderWidth: 1, borderRadius: 10,
+    paddingHorizontal: 10, marginVertical: 4, borderBottomWidth: 1,
+  },
+  matNameRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  matName: { flex: 1, color: "#18181b", fontSize: 13, fontWeight: "800" },
+  matShortBadge: { color: "#b45309", fontSize: 11, fontWeight: "800" },
+  matSku: { color: "#94a3b8", fontSize: 11, fontWeight: "600", marginTop: 2 },
+  matStats: { flexDirection: "row", gap: 18, marginTop: 8 },
+  matStat: { minWidth: 64 },
+  matStatVal: { color: "#7c3aed", fontSize: 15, fontWeight: "900" },
+  matStatLabel: { color: "#94a3b8", fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 1 },
+
+  // Log Waste action
+  wasteBtn: {
+    backgroundColor: "#fff", borderColor: "#fde68a", borderWidth: 1,
+    paddingVertical: 12, borderRadius: 12, alignItems: "center", marginBottom: 12,
+  },
+  wasteBtnTxt: { color: "#b45309", fontSize: 14, fontWeight: "800" },
+
+  // Log Waste modal
+  modalScrim: { flex: 1, backgroundColor: "rgba(15, 23, 42, 0.45)", justifyContent: "flex-end" },
+  modalWrap: { width: "100%" },
+  modalCard: {
+    backgroundColor: "#fafafa", borderTopLeftRadius: 22, borderTopRightRadius: 22,
+    paddingHorizontal: 18, paddingTop: 16, paddingBottom: 28, maxHeight: "88%",
+  },
+  modalHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
+  modalTitle: { color: "#18181b", fontSize: 19, fontWeight: "900", letterSpacing: -0.3 },
+  modalClose: { color: "#7c3aed", fontSize: 13, fontWeight: "800" },
+  modalInput: {
+    backgroundColor: "#fff", color: "#18181b", borderColor: "#e2e8f0", borderWidth: 1,
+    borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15,
+  },
+  modalQty: { fontSize: 22, fontWeight: "800", paddingVertical: 12 },
+  resolveRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
+  resolveTxt: { color: "#64748b", fontSize: 12 },
+  resolvedCard: {
+    marginTop: 10, padding: 12, borderRadius: 10,
+    backgroundColor: "#f5f3ff", borderColor: "#ddd6fe", borderWidth: 1,
+  },
+  resolvedName: { color: "#18181b", fontSize: 14, fontWeight: "800" },
+  resolvedStock: { color: "#475569", fontSize: 13, marginTop: 6, fontWeight: "600" },
+  resolvedStockVal: { color: "#7c3aed", fontWeight: "800", fontSize: 14 },
+  reasonGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  reasonBtn: {
+    width: "48%", backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1,
+    borderRadius: 10, padding: 10,
+  },
+  reasonBtnOn: { backgroundColor: "#f5f3ff", borderColor: "#7c3aed", borderWidth: 2 },
+  reasonTxt: { color: "#18181b", fontSize: 13, fontWeight: "700" },
+  reasonTxtOn: { color: "#5b21b6" },
+  stageRow: { gap: 8, paddingBottom: 4 },
+  stagePick: {
+    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12,
+    backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0",
+  },
+  stagePickOn: { backgroundColor: "#7c3aed", borderColor: "#6d28d9" },
+  stagePickTxt: { color: "#334155", fontSize: 13, fontWeight: "800" },
+  stagePickTxtOn: { color: "#fff" },
+  modalSave: {
+    backgroundColor: "#7c3aed", paddingVertical: 14, borderRadius: 12, alignItems: "center", marginTop: 14,
+    shadowColor: "#7c3aed", shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 4,
+  },
+  modalSaveTxt: { color: "#fff", fontSize: 16, fontWeight: "800" },
+  mLabel: { marginTop: 14 },
 
   center: { padding: 40, alignItems: "center" },
   errBox: { backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10, padding: 12 },

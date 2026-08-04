@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -18,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { Screen } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import { getProductionOrders, type ProductionOrder } from "../../lib/api";
 
@@ -62,10 +62,10 @@ export default function ProductionListScreen() {
           </Pressable>
         </View>
 
-        <ScrollView
+        <Screen
+          scroll
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor="#7c3aed" />}
-          showsVerticalScrollIndicator={false}
         >
           <View style={styles.head}>
             <Text style={styles.eyebrow}>Operations</Text>
@@ -107,7 +107,7 @@ export default function ProductionListScreen() {
               {done.map((o) => <OrderCard key={o.id} o={o} />)}
             </>
           )}
-        </ScrollView>
+        </Screen>
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -183,7 +183,7 @@ function BackIcon() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
 
   topBar: {
     flexDirection: "row",

@@ -210,6 +210,8 @@ export type WasteIn = {
   notes?: string;
   operator?: string;
   production_order_id?: number;
+  /** Route stage the waste happened at (Flow Board tagging); null/omitted = untagged. */
+  stage_id?: number | null;
 };
 
 export type Waste = {
@@ -591,6 +593,7 @@ export type MaterialLine = {
   unit: string | null;
   consume_stage_id: number | null;
   consume_stage_name: string | null;
+  consume_when: string | null;
   qty_per_unit: number;
   qty_required: number;
   qty_issued: number;

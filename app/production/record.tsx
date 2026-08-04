@@ -15,8 +15,6 @@ import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -30,6 +28,7 @@ import Svg, { Path } from "react-native-svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { Screen } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import { hasPermission, loadSession, type AuthUser } from "../../lib/auth";
 import { getOrderFlow, type OrderFlow, type OrderFlowStage } from "../../lib/api";
@@ -157,8 +156,7 @@ export default function RecordProgressScreen() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}><BackIcon /></Pressable>
         </View>
 
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Screen scroll contentContainerStyle={styles.scroll}>
             {loading && !flow && <View style={styles.center}><ActivityIndicator color="#7c3aed" /></View>}
             {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
@@ -283,8 +281,7 @@ export default function RecordProgressScreen() {
                 )}
               </>
             )}
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </Screen>
       </SafeAreaView>
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
     </View>
@@ -297,7 +294,7 @@ function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fi
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0", alignItems: "center", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center" },

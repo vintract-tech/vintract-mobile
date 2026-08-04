@@ -1,8 +1,17 @@
 /**
- * Flow Board — the live kanban from GET /flow/board. Horizontally
- * scrollable stage columns; each shows its WIP total and the orders
- * sitting in it (code, qty, days-waiting tint). Tap an order → the
- * production order screen (stage balances + Record Progress live there).
+ * Flow Board — the live kanban from GET /flow/board.
+ *
+ * Redesign (founder feedback: "tiles are lengthy"): instead of full-height
+ * kanban columns panned horizontally, the stages sit in one compact
+ * horizontal strip (segmented control — dot, name, qty per chip) and the
+ * selected stage's orders render as a full-width vertical list, one row
+ * per order (code + product + qty + days tint on a single line). On a
+ * phone this wins: every stage's load is visible at a glance without
+ * panning, and a 7-stage route never needs endless column scrolling —
+ * you flick the strip, not the board.
+ *
+ * Tap an order row → the production order screen (stage balances,
+ * materials and Record Progress live there).
  *
  * Also drains the offline record queue on focus — this is the screen a
  * floor manager returns to when the Wi-Fi comes back.
@@ -22,6 +31,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { useListBottomPadding } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import { getFlowBoard, type FlowBoard, type FlowBoardOrder, type FlowBoardStage } from "../../lib/api";
 import { pendingCount, replay } from "../../lib/flowQueue";
@@ -32,6 +42,8 @@ export default function FlowBoardScreen() {
   const [err, setErr] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [pending, setPending] = useState(0);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const listBottomPad = useListBottomPadding();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -43,7 +55,16 @@ export default function FlowBoardScreen() {
         Alert.alert("Some Queued Records Were Rejected", out.rejected.join("\n"));
       }
       setPending(await pendingCount());
-      setBoard(await getFlowBoard("in_progress"));
+      const b = await getFlowBoard("in_progress");
+      setBoard(b);
+      // Keep the current selection if that stage still exists; otherwise
+      // land on the first stage that actually has orders, else the first.
+      setSelectedId((prev) => {
+        const visible = b.stages.filter((s) => s.is_active || s.total_qty > 0);
+        if (prev != null && visible.some((s) => s.stage_id === prev)) return prev;
+        const busy = visible.find((s) => s.orders.length > 0);
+        return (busy ?? visible[0])?.stage_id ?? null;
+      });
     } catch (e: any) {
       setErr(e?.message ?? "Failed to load");
       setPending(await pendingCount().catch(() => 0));
@@ -55,6 +76,7 @@ export default function FlowBoardScreen() {
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   const stages = (board?.stages ?? []).filter((s) => s.is_active || s.total_qty > 0);
+  const selected = stages.find((s) => s.stage_id === selectedId) ?? null;
 
   return (
     <View style={styles.root}>
@@ -86,23 +108,62 @@ export default function FlowBoardScreen() {
         {loading && !board && <View style={styles.center}><ActivityIndicator color="#7c3aed" /></View>}
 
         {board && (
-          <ScrollView
-            horizontal
-            style={{ flex: 1 }}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.columns}
-          >
-            {stages.map((s) => <StageColumn key={s.stage_id} stage={s} />)}
-          </ScrollView>
-        )}
+          <>
+            {/* Stage strip — every stage's load at a glance; tap to focus. */}
+            <View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.strip}
+              >
+                {stages.map((s) => (
+                  <StageChip
+                    key={s.stage_id}
+                    stage={s}
+                    selected={s.stage_id === selectedId}
+                    onPress={() => setSelectedId(s.stage_id)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
 
-        {board && !loading && stages.every((s) => s.orders.length === 0) && (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>Nothing On The Floor</Text>
-            <Text style={styles.emptyBody}>
-              Orders appear here once they are started on Flow from the web app.
-            </Text>
-          </View>
+            {/* Selected stage's orders — full-width vertical list. */}
+            {selected && (
+              <View style={styles.stageHead}>
+                <View style={[styles.stageDot, { backgroundColor: selected.colour || "#7c3aed" }]} />
+                <Text style={styles.stageHeadName} numberOfLines={1}>{selected.name}</Text>
+                {selected.over_wip_limit && (
+                  <View style={styles.overBadge}><Text style={styles.overBadgeTxt}>Over Limit</Text></View>
+                )}
+                <Text style={styles.stageHeadQty}>
+                  {selected.total_qty}
+                  <Text style={styles.stageHeadQtyLabel}>
+                    {selected.wip_limit != null ? ` / ${selected.wip_limit}` : ""}
+                  </Text>
+                </Text>
+              </View>
+            )}
+
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[styles.orderList, { paddingBottom: listBottomPad }]}
+            >
+              {selected && selected.orders.length === 0 && (
+                <Text style={styles.stageEmpty}>Nothing At This Stage</Text>
+              )}
+              {selected?.orders.map((o) => <OrderRow key={o.order_id} order={o} />)}
+
+              {!loading && stages.every((s) => s.orders.length === 0) && (
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyTitle}>Nothing On The Floor</Text>
+                  <Text style={styles.emptyBody}>
+                    Orders appear here once they are started on Flow from the web app.
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          </>
         )}
       </SafeAreaView>
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -110,49 +171,49 @@ export default function FlowBoardScreen() {
   );
 }
 
-function StageColumn({ stage }: { stage: FlowBoardStage }) {
+function StageChip({
+  stage,
+  selected,
+  onPress,
+}: {
+  stage: FlowBoardStage;
+  selected: boolean;
+  onPress: () => void;
+}) {
   return (
-    <View style={[styles.column, stage.over_wip_limit && styles.columnOver]}>
-      <View style={styles.columnHead}>
-        <View style={[styles.stageDot, { backgroundColor: stage.colour || "#7c3aed" }]} />
-        <Text style={styles.stageName} numberOfLines={1}>{stage.name}</Text>
-      </View>
-      <View style={styles.columnStats}>
-        <Text style={styles.stageQty}>{stage.total_qty}</Text>
-        <Text style={styles.stageQtyLabel}>
-          {stage.wip_limit != null ? `of ${stage.wip_limit} WIP limit` : "units"}
-        </Text>
-      </View>
-      {stage.over_wip_limit && (
-        <View style={styles.overBadge}><Text style={styles.overBadgeTxt}>Over Limit</Text></View>
-      )}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
-        {stage.orders.length === 0 ? (
-          <Text style={styles.columnEmpty}>Empty</Text>
-        ) : (
-          stage.orders.map((o) => <OrderChip key={o.order_id} order={o} />)
-        )}
-      </ScrollView>
-    </View>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.chip,
+        stage.over_wip_limit && styles.chipOver,
+        selected && styles.chipOn,
+      ]}
+    >
+      <View style={[styles.chipDot, { backgroundColor: stage.colour || "#7c3aed" }]} />
+      <Text style={[styles.chipName, selected && styles.chipTxtOn]} numberOfLines={1}>
+        {stage.name}
+      </Text>
+      <Text style={[styles.chipQty, selected && styles.chipTxtOn]}>{stage.total_qty}</Text>
+    </Pressable>
   );
 }
 
-function OrderChip({ order }: { order: FlowBoardOrder }) {
+function OrderRow({ order }: { order: FlowBoardOrder }) {
   // Ageing tint: fresh → white, 2+ days → amber, 5+ days → red.
-  const aged = order.days_waiting >= 5 ? styles.chipRed : order.days_waiting >= 2 ? styles.chipAmber : null;
+  const aged = order.days_waiting >= 5 ? styles.rowRed : order.days_waiting >= 2 ? styles.rowAmber : null;
   return (
     <Pressable
       onPress={() => router.push({ pathname: "/production/[id]", params: { id: String(order.order_id) } })}
-      style={({ pressed }) => [styles.chip, aged, pressed && { opacity: 0.9 }]}
+      style={({ pressed }) => [styles.row, aged, pressed && { opacity: 0.9 }]}
     >
-      <Text style={styles.chipCode}>{order.order_code}</Text>
-      <Text style={styles.chipName} numberOfLines={1}>{order.product_name}</Text>
-      <View style={styles.chipFoot}>
-        <Text style={styles.chipQty}>{order.qty}</Text>
-        <Text style={styles.chipDays}>
-          {order.days_waiting > 0 ? `${order.days_waiting}d waiting` : "fresh"}
-        </Text>
+      <View style={styles.rowMain}>
+        <Text style={styles.rowCode}>{order.order_code}</Text>
+        <Text style={styles.rowName} numberOfLines={1}>{order.product_name}</Text>
       </View>
+      <Text style={styles.rowDays}>
+        {order.days_waiting > 0 ? `${order.days_waiting}d` : "fresh"}
+      </Text>
+      <Text style={styles.rowQty}>{order.qty}</Text>
     </Pressable>
   );
 }
@@ -178,39 +239,53 @@ const styles = StyleSheet.create({
   },
   pendingTxt: { color: "#92400e", fontSize: 12, fontWeight: "700" },
 
-  columns: { paddingHorizontal: 14, paddingBottom: 20, gap: 12 },
-  column: {
-    width: 240, backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1,
-    borderRadius: 16, padding: 12, maxHeight: "100%",
+  // Stage strip
+  strip: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
+  chip: {
+    flexDirection: "row", alignItems: "center", gap: 7,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
+    backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0",
   },
-  columnOver: { borderColor: "#fecaca", backgroundColor: "#fffafa" },
-  columnHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  chipOver: { borderColor: "#fecaca", backgroundColor: "#fffafa" },
+  chipOn: { backgroundColor: "#7c3aed", borderColor: "#6d28d9" },
+  chipDot: { width: 8, height: 8, borderRadius: 4 },
+  chipName: { color: "#334155", fontSize: 13, fontWeight: "800", maxWidth: 130 },
+  chipQty: { color: "#7c3aed", fontSize: 13, fontWeight: "900" },
+  chipTxtOn: { color: "#fff" },
+
+  // Selected stage header
+  stageHead: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: 22, paddingBottom: 8,
+  },
   stageDot: { width: 10, height: 10, borderRadius: 5 },
-  stageName: { flex: 1, color: "#18181b", fontSize: 14, fontWeight: "800" },
-  columnStats: { flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 8, marginBottom: 8 },
-  stageQty: { color: "#7c3aed", fontSize: 24, fontWeight: "900", letterSpacing: -0.5 },
-  stageQtyLabel: { color: "#94a3b8", fontSize: 11, fontWeight: "600" },
+  stageHeadName: { flex: 1, color: "#18181b", fontSize: 15, fontWeight: "800" },
+  stageHeadQty: { color: "#7c3aed", fontSize: 18, fontWeight: "900", letterSpacing: -0.3 },
+  stageHeadQtyLabel: { color: "#94a3b8", fontSize: 12, fontWeight: "700" },
   overBadge: {
-    alignSelf: "flex-start", backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1,
-    borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 8,
+    backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1,
+    borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3,
   },
   overBadgeTxt: { color: "#b91c1c", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 },
-  columnEmpty: { color: "#cbd5e1", fontSize: 12, fontStyle: "italic", paddingVertical: 8 },
 
-  chip: {
-    backgroundColor: "#f8fafc", borderColor: "#e2e8f0", borderWidth: 1,
-    borderRadius: 12, padding: 10, marginBottom: 8,
+  // Order list
+  orderList: { paddingHorizontal: 18, gap: 8 },
+  stageEmpty: { color: "#cbd5e1", fontSize: 13, fontStyle: "italic", paddingVertical: 10, textAlign: "center" },
+  row: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    backgroundColor: "#fff", borderColor: "#e2e8f0", borderWidth: 1,
+    borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10,
   },
-  chipAmber: { backgroundColor: "#fffbeb", borderColor: "#fde68a" },
-  chipRed: { backgroundColor: "#fef2f2", borderColor: "#fecaca" },
-  chipCode: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 0.5 },
-  chipName: { color: "#18181b", fontSize: 13, fontWeight: "700", marginTop: 2 },
-  chipFoot: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 6 },
-  chipQty: { color: "#18181b", fontSize: 15, fontWeight: "900" },
-  chipDays: { color: "#94a3b8", fontSize: 10, fontWeight: "700" },
+  rowAmber: { backgroundColor: "#fffbeb", borderColor: "#fde68a" },
+  rowRed: { backgroundColor: "#fef2f2", borderColor: "#fecaca" },
+  rowMain: { flex: 1 },
+  rowCode: { color: "#7c3aed", fontSize: 11, fontWeight: "800", letterSpacing: 0.5 },
+  rowName: { color: "#18181b", fontSize: 13, fontWeight: "700", marginTop: 1 },
+  rowDays: { color: "#94a3b8", fontSize: 11, fontWeight: "700" },
+  rowQty: { color: "#18181b", fontSize: 16, fontWeight: "900", minWidth: 34, textAlign: "right" },
 
   center: { padding: 40, alignItems: "center" },
-  emptyCard: { marginHorizontal: 18, padding: 20, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1 },
+  emptyCard: { padding: 20, backgroundColor: "#fff", borderRadius: 14, borderColor: "#e2e8f0", borderWidth: 1 },
   emptyTitle: { color: "#18181b", fontSize: 15, fontWeight: "800" },
   emptyBody: { color: "#64748b", fontSize: 13, marginTop: 4 },
   errBox: { marginHorizontal: 18, backgroundColor: "#fef2f2", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 10 },
