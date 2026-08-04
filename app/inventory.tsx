@@ -2,14 +2,15 @@
  * Inventory list — browse all SKUs with live stock, searchable. Tap a row
  * to open the item detail (same screen the scanner lands on).
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { LightBackground } from "../components/LightBackground";
+import { Screen, useListBottomPadding } from "../components/Screen";
 import { listItems, type Item } from "../lib/api";
 
 export default function InventoryScreen() {
@@ -17,6 +18,7 @@ export default function InventoryScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const listBottomPadding = useListBottomPadding();
 
   const load = useCallback((query: string) => {
     setLoading(true); setError(null);
@@ -27,6 +29,19 @@ export default function InventoryScreen() {
   }, []);
 
   useEffect(() => { const t = setTimeout(() => load(q), 350); return () => clearTimeout(t); }, [q, load]);
+
+  // Refetch when the screen regains focus so stock counts never go
+  // stale. First focus is skipped — the debounced effect above already
+  // covers the initial load.
+  const qRef = useRef(q);
+  qRef.current = q;
+  const firstFocus = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (firstFocus.current) { firstFocus.current = false; return; }
+      load(qRef.current);
+    }, [load]),
+  );
 
   return (
     <View style={styles.root}>
@@ -42,50 +57,54 @@ export default function InventoryScreen() {
           <View style={{ width: 36 }} />
         </View>
 
-        <View style={styles.searchWrap}>
-          <TextInput
-            value={q}
-            onChangeText={setQ}
-            placeholder="Search SKU Or Name…"
-            placeholderTextColor="#9ca3af"
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={styles.search}
-          />
-        </View>
+        <Screen>
+          <View style={styles.searchWrap}>
+            <TextInput
+              value={q}
+              onChangeText={setQ}
+              placeholder="Search SKU Or Name…"
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={styles.search}
+            />
+          </View>
 
-        {loading ? (
-          <ActivityIndicator style={{ marginTop: 28 }} color="#0d9488" size="large" />
-        ) : error ? (
-          <Text style={styles.err}>{error}</Text>
-        ) : (
-          <FlatList
-            data={items}
-            keyExtractor={(it) => String(it.id)}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
-            ListEmptyComponent={<Text style={styles.empty}>No items found.</Text>}
-            renderItem={({ item }) => {
-              const desc = [item.category, item.sub_category, item.model].filter(Boolean).join(" · ");
-              return (
-                <Pressable
-                  onPress={() => router.push({ pathname: "/item/[sku]", params: { sku: item.sku_code } })}
-                  style={({ pressed }) => [styles.row, pressed && { opacity: 0.9 }]}
-                >
-                  <View style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
-                    <Text style={styles.sku} numberOfLines={1}>{item.sku_code}</Text>
-                    {!!desc && <Text style={styles.desc} numberOfLines={1}>{desc}</Text>}
-                  </View>
-                  <View style={{ alignItems: "flex-end" }}>
-                    <Text style={[styles.qty, item.is_low && { color: "#b45309" }]}>
-                      {item.on_hand}{item.stock_unit ? ` ${item.stock_unit}` : ""}
-                    </Text>
-                    {item.is_low && <Text style={styles.low}>Low Stock</Text>}
-                  </View>
-                </Pressable>
-              );
-            }}
-          />
-        )}
+          {loading && items.length === 0 ? (
+            <ActivityIndicator style={{ marginTop: 28 }} color="#0d9488" size="large" />
+          ) : error ? (
+            <Text style={styles.err}>{error}</Text>
+          ) : (
+            <FlatList
+              data={items}
+              keyExtractor={(it) => String(it.id)}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: listBottomPadding }}
+              keyboardShouldPersistTaps="handled"
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(q)} tintColor="#0d9488" />}
+              ListEmptyComponent={<Text style={styles.empty}>No Items Found.</Text>}
+              renderItem={({ item }) => {
+                const desc = [item.category, item.sub_category, item.model].filter(Boolean).join(" · ");
+                return (
+                  <Pressable
+                    onPress={() => router.push({ pathname: "/item/[sku]", params: { sku: item.sku_code } })}
+                    style={({ pressed }) => [styles.row, pressed && { opacity: 0.9 }]}
+                  >
+                    <View style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
+                      <Text style={styles.sku} numberOfLines={1}>{item.sku_code}</Text>
+                      {!!desc && <Text style={styles.desc} numberOfLines={1}>{desc}</Text>}
+                    </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={[styles.qty, item.is_low && { color: "#b45309" }]}>
+                        {item.on_hand}{item.stock_unit ? ` ${item.stock_unit}` : ""}
+                      </Text>
+                      {item.is_low && <Text style={styles.low}>Low Stock</Text>}
+                    </View>
+                  </Pressable>
+                );
+              }}
+            />
+          )}
+        </Screen>
       </SafeAreaView>
     </View>
   );

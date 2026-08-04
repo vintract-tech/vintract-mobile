@@ -11,8 +11,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -23,6 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { Screen, useListBottomPadding } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import { hasPermission, loadSession, type AuthUser } from "../../lib/auth";
 import {
@@ -51,6 +55,7 @@ export default function AttendanceScreen() {
   const [err, setErr] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [selected, setSelected] = useState<AttendanceDailyRow | null>(null);
+  const listBottomPadding = useListBottomPadding();
 
   const key = dayKey(day);
 
@@ -88,55 +93,58 @@ export default function AttendanceScreen() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}><BackIcon /></Pressable>
         </View>
 
-        <View style={styles.head}>
-          <Text style={styles.eyebrow}>HR</Text>
-          <Text style={styles.title}>Attendance</Text>
-        </View>
-
-        {/* Date picker strip */}
-        <View style={styles.dateRow}>
-          <Pressable onPress={() => shift(-1)} hitSlop={10} style={styles.dateBtn}><Text style={styles.dateBtnTxt}>‹</Text></Pressable>
-          <View style={{ alignItems: "center" }}>
-            <Text style={styles.dateTxt}>
-              {day.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
-            </Text>
-            {!isToday && (
-              <Pressable onPress={() => setDay(new Date())} hitSlop={8}>
-                <Text style={styles.todayLink}>Today</Text>
-              </Pressable>
-            )}
+        <Screen>
+          <View style={styles.head}>
+            <Text style={styles.eyebrow}>HR</Text>
+            <Text style={styles.title}>Attendance</Text>
           </View>
-          <Pressable
-            onPress={() => !isToday && shift(1)}
-            hitSlop={10}
-            style={[styles.dateBtn, isToday && { opacity: 0.3 }]}
-          >
-            <Text style={styles.dateBtnTxt}>›</Text>
-          </Pressable>
-        </View>
 
-        {!loading && !err && (
-          <View style={styles.statRow}>
-            <Stat label="Present" value={String(present)} accent />
-            <Stat label="Working" value={String(working)} />
-            <Stat label="Absent" value={String(absent)} />
+          {/* Date picker strip */}
+          <View style={styles.dateRow}>
+            <Pressable onPress={() => shift(-1)} hitSlop={10} style={styles.dateBtn}><Text style={styles.dateBtnTxt}>‹</Text></Pressable>
+            <View style={{ alignItems: "center" }}>
+              <Text style={styles.dateTxt}>
+                {day.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+              </Text>
+              {!isToday && (
+                <Pressable onPress={() => setDay(new Date())} hitSlop={8}>
+                  <Text style={styles.todayLink}>Today</Text>
+                </Pressable>
+              )}
+            </View>
+            <Pressable
+              onPress={() => !isToday && shift(1)}
+              hitSlop={10}
+              style={[styles.dateBtn, isToday && { opacity: 0.3 }]}
+            >
+              <Text style={styles.dateBtnTxt}>›</Text>
+            </Pressable>
           </View>
-        )}
 
-        {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
-        {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
+          {!loading && !err && (
+            <View style={styles.statRow}>
+              <Stat label="Present" value={String(present)} accent />
+              <Stat label="Working" value={String(working)} />
+              <Stat label="Absent" value={String(absent)} />
+            </View>
+          )}
 
-        {!loading && !err && (
-          <FlatList
-            data={rows}
-            keyExtractor={(r) => String(r.employee_id)}
-            contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }}
-            ListEmptyComponent={<Text style={styles.empty}>No Employees On Record</Text>}
-            renderItem={({ item }) => (
-              <DayRow row={item} onPress={canCorrect ? () => setSelected(item) : undefined} />
-            )}
-          />
-        )}
+          {loading && rows.length === 0 && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
+          {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
+
+          {!err && !(loading && rows.length === 0) && (
+            <FlatList
+              data={rows}
+              keyExtractor={(r) => String(r.employee_id)}
+              contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: listBottomPadding }}
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor="#0d9488" />}
+              ListEmptyComponent={<Text style={styles.empty}>No Employees On Record</Text>}
+              renderItem={({ item }) => (
+                <DayRow row={item} onPress={canCorrect ? () => setSelected(item) : undefined} />
+              )}
+            />
+          )}
+        </Screen>
       </SafeAreaView>
 
       {selected && (
@@ -299,7 +307,11 @@ function CorrectionSheet({
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={() => onClose(changed)}>
-      <View style={styles.sheetBackdrop}>
+      {/* The sheet holds the time + note inputs — keep them above the keyboard. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.sheetBackdrop}
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={() => onClose(changed)} />
         <View style={styles.sheet}>
           <Text style={styles.sheetTitle}>{row.employee_name}</Text>
@@ -384,7 +396,7 @@ function CorrectionSheet({
             </Pressable>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

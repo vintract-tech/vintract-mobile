@@ -20,6 +20,7 @@ import { CameraView, useCameraPermissions, type BarcodeType } from "expo-camera"
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../components/BrandMark";
 import { LightBackground } from "../components/LightBackground";
+import { Screen } from "../components/Screen";
 import { SideMenu } from "../components/SideMenu";
 import { loadWorkspace } from "../lib/workspace";
 
@@ -76,71 +77,73 @@ export default function ScanScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.head}>
-          <Text style={styles.eyebrow}>Inventory</Text>
-          <Text style={styles.title}>Scan An SKU</Text>
-        </View>
+        <Screen scroll>
+          <View style={styles.head}>
+            <Text style={styles.eyebrow}>Inventory</Text>
+            <Text style={styles.title}>Scan An SKU</Text>
+          </View>
 
-        {/* Camera viewer */}
-        <View style={styles.viewerWrap}>
-          {!permission ? (
-            <View style={styles.viewer}>
-              <ActivityIndicator color="#7c3aed" />
-            </View>
-          ) : !permission.granted ? (
-            <View style={[styles.viewer, styles.permWrap]}>
-              <Text style={styles.permTitle}>Camera Access</Text>
-              <Text style={styles.permBody}>
-                Allow the camera so you can scan SKUs on the floor.
-              </Text>
-              <Pressable onPress={requestPermission} style={styles.permBtn}>
-                <Text style={styles.permBtnText}>Allow Camera</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <View style={styles.viewer}>
-              <CameraView
-                style={StyleSheet.absoluteFill}
-                facing="back"
-                barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES }}
-                onBarcodeScanned={({ data }) => onScanned(data)}
-              />
-              <View pointerEvents="none" style={styles.reticleWrap}>
-                <View style={styles.reticle}>
-                  <View style={[styles.corner, styles.cornerTL]} />
-                  <View style={[styles.corner, styles.cornerTR]} />
-                  <View style={[styles.corner, styles.cornerBL]} />
-                  <View style={[styles.corner, styles.cornerBR]} />
+          {/* Camera viewer */}
+          <View style={styles.viewerWrap}>
+            {!permission ? (
+              <View style={styles.viewer}>
+                <ActivityIndicator color="#7c3aed" />
+              </View>
+            ) : !permission.granted ? (
+              <View style={[styles.viewer, styles.permWrap]}>
+                <Text style={styles.permTitle}>Camera Access</Text>
+                <Text style={styles.permBody}>
+                  Allow the camera so you can scan SKUs on the floor.
+                </Text>
+                <Pressable onPress={requestPermission} style={styles.permBtn}>
+                  <Text style={styles.permBtnText}>Allow Camera</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.viewer}>
+                <CameraView
+                  style={StyleSheet.absoluteFill}
+                  facing="back"
+                  barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES }}
+                  onBarcodeScanned={({ data }) => onScanned(data)}
+                />
+                <View pointerEvents="none" style={styles.reticleWrap}>
+                  <View style={styles.reticle}>
+                    <View style={[styles.corner, styles.cornerTL]} />
+                    <View style={[styles.corner, styles.cornerTR]} />
+                    <View style={[styles.corner, styles.cornerBL]} />
+                    <View style={[styles.corner, styles.cornerBR]} />
+                  </View>
                 </View>
               </View>
-            </View>
-          )}
-        </View>
-
-        {/* Manual entry */}
-        <View style={styles.manualCard}>
-          <Text style={styles.manualLabel}>Or Type The SKU</Text>
-          <View style={styles.manualRow}>
-            <TextInput
-              value={manualSku}
-              onChangeText={setManualSku}
-              placeholder="SKU Code"
-              placeholderTextColor="#a3a3a3"
-              autoCapitalize="characters"
-              autoCorrect={false}
-              style={styles.manualInput}
-              onSubmitEditing={() => onScanned(manualSku)}
-              returnKeyType="search"
-            />
-            <Pressable
-              onPress={() => onScanned(manualSku)}
-              style={({ pressed }) => [styles.manualBtn, pressed && { opacity: 0.85 }]}
-            >
-              <Text style={styles.manualBtnText}>Look Up</Text>
-            </Pressable>
+            )}
           </View>
-          {wsName ? <Text style={styles.wsLabel}>WORKSPACE · {wsName}</Text> : null}
-        </View>
+
+          {/* Manual entry */}
+          <View style={styles.manualCard}>
+            <Text style={styles.manualLabel}>Or Type The SKU</Text>
+            <View style={styles.manualRow}>
+              <TextInput
+                value={manualSku}
+                onChangeText={setManualSku}
+                placeholder="SKU Code"
+                placeholderTextColor="#a3a3a3"
+                autoCapitalize="characters"
+                autoCorrect={false}
+                style={styles.manualInput}
+                onSubmitEditing={() => onScanned(manualSku)}
+                returnKeyType="search"
+              />
+              <Pressable
+                onPress={() => onScanned(manualSku)}
+                style={({ pressed }) => [styles.manualBtn, pressed && { opacity: 0.85 }]}
+              >
+                <Text style={styles.manualBtnText}>Look Up</Text>
+              </Pressable>
+            </View>
+            {wsName ? <Text style={styles.wsLabel}>WORKSPACE · {wsName}</Text> : null}
+          </View>
+        </Screen>
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />

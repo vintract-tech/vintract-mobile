@@ -3,15 +3,16 @@
  * name, employee code, department, designation chip, active/terminated
  * badge. Tap a row → employee detail (profile + attendance + documents).
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { Screen, useListBottomPadding } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import { listEmployees, type Employee } from "../../lib/api";
 
@@ -21,6 +22,7 @@ export default function EmployeesScreen() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const listBottomPadding = useListBottomPadding();
 
   const load = useCallback((query: string) => {
     setLoading(true); setErr(null);
@@ -31,6 +33,18 @@ export default function EmployeesScreen() {
   }, []);
 
   useEffect(() => { const t = setTimeout(() => load(q), 350); return () => clearTimeout(t); }, [q, load]);
+
+  // Refetch on focus so the roster stays fresh. First focus is skipped —
+  // the debounced effect above already covers the initial load.
+  const qRef = useRef(q);
+  qRef.current = q;
+  const firstFocus = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (firstFocus.current) { firstFocus.current = false; return; }
+      load(qRef.current);
+    }, [load]),
+  );
 
   const active = rows.filter((e) => e.status === "active").length;
 
@@ -44,36 +58,40 @@ export default function EmployeesScreen() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}><BackIcon /></Pressable>
         </View>
 
-        <View style={styles.head}>
-          <Text style={styles.eyebrow}>HR</Text>
-          <Text style={styles.title}>Employees</Text>
-          <Text style={styles.sub}>{rows.length} on record, {active} active.</Text>
-        </View>
+        <Screen>
+          <View style={styles.head}>
+            <Text style={styles.eyebrow}>HR</Text>
+            <Text style={styles.title}>Employees</Text>
+            <Text style={styles.sub}>{rows.length} on record, {active} active.</Text>
+          </View>
 
-        <View style={styles.searchWrap}>
-          <TextInput
-            value={q}
-            onChangeText={setQ}
-            placeholder="Search Name, Code Or Department…"
-            placeholderTextColor="#9ca3af"
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={styles.search}
-          />
-        </View>
+          <View style={styles.searchWrap}>
+            <TextInput
+              value={q}
+              onChangeText={setQ}
+              placeholder="Search Name, Code Or Department…"
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={styles.search}
+            />
+          </View>
 
-        {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
-        {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
+          {loading && rows.length === 0 && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
+          {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
-        {!loading && !err && (
-          <FlatList
-            data={rows}
-            keyExtractor={(e) => String(e.id)}
-            contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }}
-            ListEmptyComponent={<Text style={styles.empty}>No Employees Found</Text>}
-            renderItem={({ item }) => <EmployeeRow emp={item} />}
-          />
-        )}
+          {!err && !(loading && rows.length === 0) && (
+            <FlatList
+              data={rows}
+              keyExtractor={(e) => String(e.id)}
+              contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: listBottomPadding }}
+              keyboardShouldPersistTaps="handled"
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(q)} tintColor="#0d9488" />}
+              ListEmptyComponent={<Text style={styles.empty}>No Employees Found</Text>}
+              renderItem={({ item }) => <EmployeeRow emp={item} />}
+            />
+          )}
+        </Screen>
       </SafeAreaView>
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
     </View>

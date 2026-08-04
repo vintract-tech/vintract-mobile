@@ -5,20 +5,21 @@
  * avatar (right). Greeting, workspace pill, primary "Scan SKU" tile,
  * then a grid of upcoming features (SOON badges).
  */
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Linking,
   Pressable,
-  ScrollView,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../components/BrandMark";
 import { LightBackground } from "../components/LightBackground";
+import { Screen } from "../components/Screen";
 import { SideMenu } from "../components/SideMenu";
 import { loadSession, type AuthUser } from "../lib/auth";
 import { loadWorkspace, type Workspace } from "../lib/workspace";
@@ -33,17 +34,37 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [summary, setSummary] = useState<InventorySummary | null>(null);
   const [stats, setStats] = useState<InventoryStats | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const [w, s] = await Promise.all([loadWorkspace(), loadSession()]);
-      setWs(w);
-      setUser(s?.user ?? null);
-    })();
+  const refresh = useCallback(async () => {
+    const [w, s] = await Promise.all([loadWorkspace(), loadSession()]);
+    setWs(w);
+    setUser(s?.user ?? null);
     // Inventory dashboard figures (same source as the web dashboard).
-    getInventorySummary().then(setSummary).catch(() => {});
-    getInventoryStats().then(setStats).catch(() => {});
+    await Promise.all([
+      getInventorySummary().then(setSummary).catch(() => {}),
+      getInventoryStats().then(setStats).catch(() => {}),
+    ]);
   }, []);
+
+  // Founder bug: stats loaded once and never refreshed (Low Stock stuck
+  // until re-login). Refetch on every focus + every 30s while focused.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+      const t = setInterval(refresh, 30_000);
+      return () => clearInterval(t);
+    }, [refresh]),
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
 
   const inr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
   // Open the matching page in the full web app (mobile is summary-only).
@@ -91,7 +112,11 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Screen
+          scroll
+          contentContainerStyle={styles.scroll}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4f46e5" />}
+        >
           {/* Greeting */}
           <View style={styles.greetWrap}>
             <Text style={styles.greet}>{greeting},</Text>
@@ -141,7 +166,7 @@ export default function HomeScreen() {
             <ActionTile title="Flow Board" onPress={() => router.push("/production/flow" as any)} />
             <ActionTile title="Waste Log" onPress={() => router.push("/waste")} />
           </View>
-        </ScrollView>
+        </Screen>
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -264,7 +289,7 @@ const styles = StyleSheet.create({
   },
   avatarInitial: { color: "#fff", fontWeight: "800", fontSize: 14 },
 
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
 
   greetWrap: { marginTop: 14, marginBottom: 22 },
   greet: { color: "#64748b", fontSize: 15, fontWeight: "500" },

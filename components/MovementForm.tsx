@@ -16,10 +16,7 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -30,6 +27,7 @@ import { router } from "expo-router";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "./BrandMark";
 import { LightBackground } from "./LightBackground";
+import { Screen } from "./Screen";
 import { SideMenu } from "./SideMenu";
 import { createMovement, getItemBySku, parseQtyHint, type Item } from "../lib/api";
 import { loadSession } from "../lib/auth";
@@ -170,15 +168,7 @@ export function MovementScreen({
           </Pressable>
         </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={styles.flex}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+        <Screen scroll contentContainerStyle={styles.scroll}>
             <View style={styles.head}>
               <Text style={[styles.eyebrow, { color: mode.accent }]}>Inventory</Text>
               <Text style={styles.title}>{mode.title}</Text>
@@ -278,8 +268,7 @@ export function MovementScreen({
                 <Text style={styles.primaryText}>{mode.primaryLabel}</Text>
               )}
             </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </Screen>
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -313,8 +302,7 @@ function ScanGlyph() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
-  flex: { flex: 1 },
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
 
   topBar: {
     flexDirection: "row",

@@ -6,21 +6,22 @@
  * purple; an orange-tinted variant when low-stock; a clean meta card
  * with the other fields; a "Scan another" primary CTA at the bottom.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
   Pressable,
-  ScrollView,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { Screen } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import { getItemBySku, type Item } from "../../lib/api";
 
@@ -29,17 +30,34 @@ export default function ItemDetailScreen() {
   const [item, setItem] = useState<Item | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     if (!sku) return;
-    setLoading(true);
     setErr(null);
-    getItemBySku(sku)
-      .then(setItem)
-      .catch((e) => setErr(e?.message ?? "Lookup failed"))
-      .finally(() => setLoading(false));
+    try {
+      setItem(await getItemBySku(sku));
+    } catch (e: any) {
+      setItem(null);
+      setErr(e?.message ?? "Lookup failed");
+    } finally {
+      setLoading(false);
+    }
   }, [sku]);
+
+  // Refetch on every focus so the stock figure is never stale (the
+  // initial load is just the first focus).
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
 
   return (
     <View style={styles.root}>
@@ -69,7 +87,11 @@ export default function ItemDetailScreen() {
           </Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Screen
+          scroll
+          contentContainerStyle={styles.scroll}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#7c3aed" />}
+        >
           <Text style={styles.scannedLabel}>Scanned</Text>
           <Text style={styles.skuText}>{sku}</Text>
 
@@ -148,7 +170,7 @@ export default function ItemDetailScreen() {
               </Pressable>
             </>
           )}
-        </ScrollView>
+        </Screen>
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -196,7 +218,7 @@ function formatQty(n: number): string {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
 
   topBar: {
     flexDirection: "row",

@@ -6,10 +6,7 @@
 import { useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../components/BrandMark";
 import { LightBackground } from "../components/LightBackground";
+import { Screen } from "../components/Screen";
 import { SideMenu } from "../components/SideMenu";
 import { getItemBySku, logWaste, type Item, type WasteReason } from "../lib/api";
 import { loadSession } from "../lib/auth";
@@ -118,11 +116,7 @@ export default function WasteScreen() {
           </Pressable>
         </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={styles.flex}
-        >
-          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <Screen scroll contentContainerStyle={styles.scroll}>
             <View style={styles.head}>
               <Text style={styles.eyebrow}>Inventory</Text>
               <Text style={styles.title}>Log Waste</Text>
@@ -217,8 +211,7 @@ export default function WasteScreen() {
             >
               {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryText}>Save Waste Entry</Text>}
             </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </Screen>
       </SafeAreaView>
 
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
@@ -251,8 +244,7 @@ function ScanGlyph() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
-  flex: { flex: 1 },
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
 
   topBar: {
     flexDirection: "row",

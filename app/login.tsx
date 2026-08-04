@@ -9,11 +9,8 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
   Linking,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -23,6 +20,7 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Defs, Pattern, Rect } from "react-native-svg";
 import { BrandMark } from "../components/BrandMark";
+import { Screen } from "../components/Screen";
 import { login } from "../lib/auth";
 import { loadWorkspace, resolveWorkspaceCode, saveWorkspace } from "../lib/workspace";
 
@@ -108,14 +106,7 @@ export default function LoginScreen() {
           </Pressable>
         </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={styles.flex}
-        >
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            keyboardShouldPersistTaps="handled"
-          >
+        <Screen scroll contentContainerStyle={styles.scroll}>
             <View style={styles.cardWrap}>
               <View style={styles.card}>
                 <Text style={styles.signIn}>Sign In</Text>
@@ -167,8 +158,7 @@ export default function LoginScreen() {
                 </View>
               </View>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+        </Screen>
       </SafeAreaView>
     </View>
   );
@@ -203,7 +193,6 @@ function Field(props: {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
-  flex: { flex: 1 },
   topBar: {
     flexDirection: "row",
     alignItems: "center",

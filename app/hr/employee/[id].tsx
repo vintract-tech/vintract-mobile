@@ -13,6 +13,7 @@ import {
   Alert,
   Modal,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,6 +26,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { BrandMark } from "../../../components/BrandMark";
 import { LightBackground } from "../../../components/LightBackground";
+import { Screen } from "../../../components/Screen";
 import { SideMenu } from "../../../components/SideMenu";
 import { hasPermission, loadSession, type AuthUser } from "../../../lib/auth";
 import {
@@ -146,11 +148,15 @@ export default function EmployeeDetailScreen() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}><BackIcon /></Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
+        <Screen
+          scroll
+          contentContainerStyle={styles.scroll}
+          refreshControl={<RefreshControl refreshing={loading && !!emp} onRefresh={refresh} tintColor="#0d9488" />}
+        >
+          {loading && !emp && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
           {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
-          {emp && !loading && (
+          {emp && !err && (
             <>
               <Text style={styles.eyebrow}>Employee</Text>
               <Text style={styles.title}>{emp.full_name}</Text>
@@ -213,7 +219,7 @@ export default function EmployeeDetailScreen() {
               )}
             </>
           )}
-        </ScrollView>
+        </Screen>
       </SafeAreaView>
 
       {/* Upload sheet */}
@@ -304,7 +310,7 @@ function BackIcon() { return (<Svg width={16} height={16} viewBox="0 0 24 24" fi
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#fafafa" },
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: 18, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 18 },
   topBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#fff", borderWidth: 1, borderColor: "#e2e8f0", alignItems: "center", justifyContent: "center" },
   brandRow: { flexDirection: "row", alignItems: "center" },

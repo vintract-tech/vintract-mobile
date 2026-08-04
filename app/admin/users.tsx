@@ -13,6 +13,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Switch,
   Text,
@@ -23,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../../components/BrandMark";
 import { LightBackground } from "../../components/LightBackground";
+import { Screen, useListBottomPadding } from "../../components/Screen";
 import { SideMenu } from "../../components/SideMenu";
 import { listRoles, listUsers, updateUser, type RoleDef, type UserAccount } from "../../lib/api";
 
@@ -34,6 +36,7 @@ export default function UsersScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [rolePickFor, setRolePickFor] = useState<UserAccount | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const listBottomPadding = useListBottomPadding();
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -84,20 +87,22 @@ export default function UsersScreen() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}><BackIcon /></Pressable>
         </View>
 
-        <View style={styles.head}>
-          <Text style={styles.eyebrow}>Admin</Text>
-          <Text style={styles.title}>Users</Text>
-          <Text style={styles.sub}>{rows.length} account(s). Create new users on the web app.</Text>
-        </View>
+        <Screen>
+          <View style={styles.head}>
+            <Text style={styles.eyebrow}>Admin</Text>
+            <Text style={styles.title}>Users</Text>
+            <Text style={styles.sub}>{rows.length} account(s). Create new users on the web app.</Text>
+          </View>
 
-        {loading && <View style={styles.center}><ActivityIndicator color="#4f46e5" /></View>}
-        {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
+          {loading && rows.length === 0 && <View style={styles.center}><ActivityIndicator color="#4f46e5" /></View>}
+          {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
-        {!loading && !err && (
+          {!err && !(loading && rows.length === 0) && (
           <FlatList
             data={rows}
             keyExtractor={(u) => String(u.id)}
-            contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }}
+            contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: listBottomPadding }}
+            refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor="#4f46e5" />}
             renderItem={({ item }) => (
               <View style={styles.card}>
                 <View style={styles.cardHead}>
@@ -131,7 +136,8 @@ export default function UsersScreen() {
               </View>
             )}
           />
-        )}
+          )}
+        </Screen>
       </SafeAreaView>
 
       {/* Role picker */}

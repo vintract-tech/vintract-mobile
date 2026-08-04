@@ -8,13 +8,14 @@
  */
 import { useCallback, useState } from "react";
 import {
-  ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View,
+  ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View,
 } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { BrandMark } from "../components/BrandMark";
 import { LightBackground } from "../components/LightBackground";
+import { Screen, useListBottomPadding } from "../components/Screen";
 import { SideMenu } from "../components/SideMenu";
 import { getCategory, listCategories, type CategoryNode } from "../lib/api";
 
@@ -25,6 +26,7 @@ export default function CategoriesScreen() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const listBottomPadding = useListBottomPadding();
 
   const refresh = useCallback(() => {
     setLoading(true);
@@ -50,49 +52,55 @@ export default function CategoriesScreen() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}><BackIcon /></Pressable>
         </View>
 
-        <View style={styles.head}>
-          <Text style={styles.eyebrow}>Inventory</Text>
-          <Text style={styles.title}>{code ? (detail?.name ?? "Category") : "Categories"}</Text>
-          <Text style={styles.sub}>
-            {code
-              ? `${items.length} item(s) in this category.`
-              : `${mains.length} main categor${mains.length === 1 ? "y" : "ies"}.`}
-          </Text>
-        </View>
+        <Screen>
+          <View style={styles.head}>
+            <Text style={styles.eyebrow}>Inventory</Text>
+            <Text style={styles.title}>{code ? (detail?.name ?? "Category") : "Categories"}</Text>
+            <Text style={styles.sub}>
+              {code
+                ? `${items.length} item(s) in this category.`
+                : `${mains.length} main categor${mains.length === 1 ? "y" : "ies"}.`}
+            </Text>
+          </View>
 
-        {loading && <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>}
-        {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
+          {loading && (code ? !detail : mains.length === 0) && (
+            <View style={styles.center}><ActivityIndicator color="#0d9488" /></View>
+          )}
+          {err && !loading && <View style={styles.errBox}><Text style={styles.errText}>{err}</Text></View>}
 
-        {!loading && !err && !code && (
-          <FlatList
-            data={mains}
-            keyExtractor={(c) => String(c.id)}
-            contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }}
-            ListEmptyComponent={<Text style={styles.empty}>No Categories Yet</Text>}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() => router.push({ pathname: "/categories", params: { code: item.code } })}
-                style={({ pressed }) => [styles.card, pressed && { opacity: 0.92 }]}
-              >
-                <View style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
-                  <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.cardMeta}>{item.code} · {item.children.length} item(s)</Text>
-                </View>
-                <Text style={styles.chevron}>›</Text>
-              </Pressable>
-            )}
-          />
-        )}
+          {!err && !code && !(loading && mains.length === 0) && (
+            <FlatList
+              data={mains}
+              keyExtractor={(c) => String(c.id)}
+              contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: listBottomPadding }}
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor="#0d9488" />}
+              ListEmptyComponent={<Text style={styles.empty}>No Categories Yet</Text>}
+              renderItem={({ item }) => (
+                <Pressable
+                  onPress={() => router.push({ pathname: "/categories", params: { code: item.code } })}
+                  style={({ pressed }) => [styles.card, pressed && { opacity: 0.92 }]}
+                >
+                  <View style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
+                    <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={styles.cardMeta}>{item.code} · {item.children.length} item(s)</Text>
+                  </View>
+                  <Text style={styles.chevron}>›</Text>
+                </Pressable>
+              )}
+            />
+          )}
 
-        {!loading && !err && !!code && (
-          <FlatList
-            data={items}
-            keyExtractor={(c) => String(c.id)}
-            contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }}
-            ListEmptyComponent={<Text style={styles.empty}>No Items In This Category</Text>}
-            renderItem={({ item }) => <ItemRow item={item} />}
-          />
-        )}
+          {!err && !!code && !(loading && !detail) && (
+            <FlatList
+              data={items}
+              keyExtractor={(c) => String(c.id)}
+              contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: listBottomPadding }}
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor="#0d9488" />}
+              ListEmptyComponent={<Text style={styles.empty}>No Items In This Category</Text>}
+              renderItem={({ item }) => <ItemRow item={item} />}
+            />
+          )}
+        </Screen>
       </SafeAreaView>
       <SideMenu visible={menuOpen} onClose={() => setMenuOpen(false)} />
     </View>
