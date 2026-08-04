@@ -12,7 +12,7 @@
  * 4. Hit save → POST /movements with the kind.
  * 5. On success, show a green confirmation and reset.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -57,6 +57,17 @@ export function MovementScreen({
   preSku?: string;
 }) {
   const [sku, setSku] = useState(preSku ?? "");
+  // A camera scan round-trips through /scan and lands back here with a fresh
+  // preSku (+ a timestamp param upstream so repeats of the same code still
+  // change the URL). Resolve it immediately — the operator scanned to book,
+  // not to type.
+  useEffect(() => {
+    if (preSku && preSku.trim()) {
+      setSku(preSku.trim());
+      resolveSku(preSku.trim());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preSku]);
   const [qty, setQty] = useState("");
   const [note, setNote] = useState("");
   const [item, setItem] = useState<Item | null>(null);
@@ -231,7 +242,10 @@ export function MovementScreen({
                   onSubmitEditing={() => resolveSku(sku)}
                 />
                 <Pressable
-                  onPress={() => router.push("/scan")}
+                  onPress={() => router.push({
+                    pathname: "/scan",
+                    params: { returnTo: mode.kind === "INWARD" ? "receive" : "move" },
+                  })}
                   style={({ pressed }) => [styles.scanBtn, pressed && { opacity: 0.85 }]}
                 >
                   <ScanGlyph />

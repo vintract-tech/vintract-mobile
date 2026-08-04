@@ -14,7 +14,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions, type BarcodeType } from "expo-camera";
 import Svg, { Path } from "react-native-svg";
@@ -37,6 +37,7 @@ export default function ScanScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const handled = useRef(false);
 
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   useFocusEffect(useCallback(() => { handled.current = false; }, []));
 
   useEffect(() => {
@@ -46,6 +47,17 @@ export default function ScanScreen() {
   function onScanned(sku: string) {
     if (handled.current || !sku || sku.trim().length < 2) return;
     handled.current = true;
+    // Launched FROM Receive Inward / Move To Floor: hand the code back to
+    // the form instead of dead-ending on the info page — the whole point
+    // of scanning there is to book a movement. Standalone scans keep the
+    // lookup behaviour.
+    if (returnTo === "receive" || returnTo === "move") {
+      router.replace({
+        pathname: `/${returnTo}`,
+        params: { sku: sku.trim(), t: String(Date.now()) },
+      });
+      return;
+    }
     router.push({ pathname: "/item/[sku]", params: { sku: sku.trim() } });
   }
 
