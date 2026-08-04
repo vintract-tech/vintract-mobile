@@ -93,6 +93,10 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
   // keeps only the managerial side. The HR section here is gated on the
   // hr.view / attendance.view permissions (admin implicitly passes).
   const showHr = hasPermission(user, "hr.view", "attendance.view");
+  // Approvals is the manager's queue; the feasibility check is read-only
+  // planning, so either side of the production permission pair sees it.
+  const showApprovals = hasPermission(user, "production.manage");
+  const showFeasibility = hasPermission(user, "production.view", "production.manage");
 
   // Sections mirror the webapp sidebar. Items with `route` are native
   // mobile screens; items with `webPath` open the feature in the device
@@ -117,6 +121,12 @@ export function SideMenu({ visible, onClose }: { visible: boolean; onClose: () =
       title: "Operations",
       items: [
         { label: "Production Orders", icon: <FactoryIcon />, route: "/production" },
+        ...(showApprovals
+          ? [{ label: "Approvals", icon: <CheckCircleIcon />, route: "/production/approvals" } as MenuItem]
+          : []),
+        ...(showFeasibility
+          ? [{ label: "Feasibility Check", icon: <GaugeIcon />, route: "/production/feasibility" } as MenuItem]
+          : []),
         { label: "Flow Board", icon: <ColumnsIcon />, route: "/production/flow" },
         { label: "Products & BOM", icon: <PackageIcon />, webPath: "/products" },
         { label: "Waste Log", icon: <TrashIcon />, route: "/waste" },
@@ -309,6 +319,22 @@ function PackageIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.3 7L12 12l8.7-5M12 22V12" stroke="#52525b" strokeWidth={1.8} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+function CheckCircleIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="9" stroke="#52525b" strokeWidth={1.8} />
+      <Path d="M8.5 12.5l2.5 2.5 4.5-5" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+function GaugeIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 19a9 9 0 1 1 16 0M12 13l4-4" stroke="#52525b" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="12" cy="14" r="1.6" stroke="#52525b" strokeWidth={1.6} />
     </Svg>
   );
 }

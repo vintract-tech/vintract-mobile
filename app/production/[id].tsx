@@ -240,6 +240,23 @@ export default function ProductionDetailScreen() {
                 </Pressable>
 
                 {/* Actions */}
+                {order.status === "pending" && (
+                  hasPermission(user, "production.manage") ? (
+                    <Pressable
+                      onPress={() => router.push("/production/approvals" as any)}
+                      style={({ pressed }) => [styles.startBtn, pressed && { opacity: 0.85 }]}
+                    >
+                      <Text style={styles.startBtnText}>Review In Approvals</Text>
+                    </Pressable>
+                  ) : (
+                    <View style={styles.closedBox}>
+                      <Text style={styles.closedText}>
+                        Awaiting Approval — a production manager must approve this order before it can start.
+                      </Text>
+                    </View>
+                  )
+                )}
+
                 {order.status === "planned" && (
                   <Pressable
                     onPress={onStart}
@@ -569,7 +586,7 @@ function MetaRow({ label, value, last }: { label: string; value: string; last?: 
 }
 
 function prettyStatus(s: ProductionOrder["status"]): string {
-  return ({ planned: "Planned", in_progress: "Running", completed: "Completed", cancelled: "Cancelled" })[s];
+  return ({ pending: "Pending Approval", planned: "Planned", in_progress: "Running", completed: "Completed", cancelled: "Cancelled" })[s];
 }
 
 function MenuIcon() {

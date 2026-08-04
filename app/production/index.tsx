@@ -42,6 +42,7 @@ export default function ProductionListScreen() {
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
+  const pending = orders.filter((o) => o.status === "pending");
   const active = orders.filter((o) => o.status === "planned" || o.status === "in_progress");
   const done = orders.filter((o) => o.status === "completed" || o.status === "cancelled");
 
@@ -85,13 +86,20 @@ export default function ProductionListScreen() {
             </View>
           )}
 
-          {!loading && active.length === 0 && done.length === 0 && !err && (
+          {!loading && pending.length === 0 && active.length === 0 && done.length === 0 && !err && (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyTitle}>No Orders Yet</Text>
               <Text style={styles.emptyBody}>
                 Production orders created on the web will show up here.
               </Text>
             </View>
+          )}
+
+          {pending.length > 0 && (
+            <>
+              <Text style={styles.section}>Pending Approval</Text>
+              {pending.map((o) => <OrderCard key={o.id} o={o} />)}
+            </>
           )}
 
           {active.length > 0 && (
@@ -146,6 +154,7 @@ function OrderCard({ o }: { o: ProductionOrder }) {
 
 function StatusPill({ status }: { status: ProductionOrder["status"] }) {
   const map: Record<ProductionOrder["status"], { bg: string; fg: string; border: string; label: string }> = {
+    pending:     { bg: "#fff7ed", fg: "#c2410c", border: "#fed7aa", label: "Pending" },
     planned:     { bg: "#eff6ff", fg: "#1d4ed8", border: "#bfdbfe", label: "Planned" },
     in_progress: { bg: "#fef3c7", fg: "#92400e", border: "#fcd34d", label: "Running" },
     completed:   { bg: "#ecfdf5", fg: "#065f46", border: "#a7f3d0", label: "Done" },

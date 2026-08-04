@@ -21,10 +21,10 @@ import { BrandMark } from "../components/BrandMark";
 import { LightBackground } from "../components/LightBackground";
 import { Screen } from "../components/Screen";
 import { SideMenu } from "../components/SideMenu";
-import { loadSession, type AuthUser } from "../lib/auth";
+import { hasPermission, loadSession, type AuthUser } from "../lib/auth";
 import { loadWorkspace, type Workspace } from "../lib/workspace";
 import {
-  getInventorySummary, getInventoryStats,
+  getInventorySummary, getInventoryStats, getProductionOrders,
   type InventorySummary, type InventoryStats,
 } from "../lib/api";
 
@@ -34,16 +34,21 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [summary, setSummary] = useState<InventorySummary | null>(null);
   const [stats, setStats] = useState<InventoryStats | null>(null);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {
     const [w, s] = await Promise.all([loadWorkspace(), loadSession()]);
     setWs(w);
     setUser(s?.user ?? null);
-    // Inventory dashboard figures (same source as the web dashboard).
+    // Inventory dashboard figures (same source as the web dashboard),
+    // plus the approvals queue depth for managers.
     await Promise.all([
       getInventorySummary().then(setSummary).catch(() => {}),
       getInventoryStats().then(setStats).catch(() => {}),
+      hasPermission(s?.user ?? null, "production.manage")
+        ? getProductionOrders("pending").then((l) => setPendingCount(l.length)).catch(() => {})
+        : Promise.resolve(),
     ]);
   }, []);
 
@@ -140,6 +145,27 @@ export default function HomeScreen() {
             <StatCard label="Waste (MTD)" value={summary ? inr(summary.waste_cost_mtd) : "—"} onPress={() => openWeb("/dashboard")} />
           </View>
 
+          {/* Managers: the approvals queue, front and centre. */}
+          {hasPermission(user, "production.manage") && (
+            <Pressable
+              onPress={() => router.push("/production/approvals" as any)}
+              style={({ pressed }) => [styles.approvalsTile, pressed && { opacity: 0.94 }]}
+            >
+              <View style={styles.approvalsBadge}>
+                <Text style={styles.approvalsBadgeTxt}>{pendingCount ?? "—"}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.approvalsTitle}>Pending Approvals</Text>
+                <Text style={styles.approvalsSub}>
+                  {pendingCount === 0
+                    ? "All Clear — Nothing Waiting."
+                    : "Production Orders Awaiting Your Decision."}
+                </Text>
+              </View>
+              <Text style={styles.approvalsArrow}>›</Text>
+            </Pressable>
+          )}
+
           <Text style={styles.sectionLabel}>Quick Actions</Text>
 
           {/* Primary tile — Scan SKU */}
@@ -164,6 +190,9 @@ export default function HomeScreen() {
             <ActionTile title="Move To Floor" onPress={() => router.push("/move")} />
             <ActionTile title="Production Orders" onPress={() => router.push("/production" as any)} />
             <ActionTile title="Flow Board" onPress={() => router.push("/production/flow" as any)} />
+            {hasPermission(user, "production.view", "production.manage") && (
+              <ActionTile title="Feasibility Check" onPress={() => router.push("/production/feasibility" as any)} />
+            )}
             <ActionTile title="Waste Log" onPress={() => router.push("/waste")} />
           </View>
         </Screen>
@@ -340,6 +369,36 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   heroTitle: { color: "#fff", fontSize: 18, fontWeight: "800" },
+
+  approvalsTile: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: "#fff7ed",
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    marginBottom: 26,
+    shadowColor: "#c2410c",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  approvalsBadge: {
+    minWidth: 44,
+    height: 44,
+    borderRadius: 22,
+    paddingHorizontal: 10,
+    backgroundColor: "#ea580c",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  approvalsBadgeTxt: { color: "#fff", fontSize: 18, fontWeight: "900" },
+  approvalsTitle: { color: "#7c2d12", fontSize: 15, fontWeight: "900" },
+  approvalsSub: { color: "#b45309", fontSize: 11, fontWeight: "600", marginTop: 2 },
+  approvalsArrow: { color: "#fdba74", fontSize: 26, fontWeight: "700" },
 
   sectionLabel: {
     color: "#64748b",

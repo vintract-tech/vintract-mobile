@@ -146,6 +146,11 @@ export type MovementIn = {
   operator?: string;
   location_code?: string;
   note?: string;
+  // INWARD only: which vendor this delivery came from + what it cost per
+  // stock_unit (from the item's vendor catalogue). Omitted = "unknown
+  // vendor" — the backend never guesses.
+  supplier_id?: number;
+  cost_per_unit?: number;
 };
 
 export function createMovement(input: MovementIn): Promise<Movement> {
@@ -153,6 +158,26 @@ export function createMovement(input: MovementIn): Promise<Movement> {
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+// ----- Item vendors (multi-vendor sourcing catalogue) -----------------
+
+/** One row of the item's vendor CATALOGUE (`GET /items/{sku}/vendors`):
+ *  who can supply this SKU, at what price. The backend returns more
+ *  fields (vendor_sku, min_order_qty, holdings) — we type what the
+ *  Receive flow renders. */
+export type ItemVendorLink = {
+  id: number;
+  supplier_id: number;
+  vendor: string;
+  cost_per_unit: number | null;
+  lead_time_days: number | null;
+  is_preferred: boolean;
+  is_active: boolean;
+};
+
+export function listItemVendors(sku: string): Promise<ItemVendorLink[]> {
+  return request<ItemVendorLink[]>(`/items/${encodeURIComponent(sku)}/vendors`);
 }
 
 // ----- Production orders ---------------------------------------------
@@ -165,7 +190,7 @@ export type ProductionOrder = {
   qty_planned: number;
   qty_produced: number;
   qty_wasted: number;
-  status: "planned" | "in_progress" | "completed" | "cancelled";
+  status: "pending" | "planned" | "in_progress" | "completed" | "cancelled";
   priority: string;
   planned_start: string | null;
   target_completion: string | null;
@@ -176,8 +201,32 @@ export type ProductionOrder = {
   updated_at: string;
 };
 
-export function getProductionOrders(): Promise<ProductionOrder[]> {
-  return request<ProductionOrder[]>("/production");
+/** Optionally filtered by a single status (e.g. "pending" for the
+ *  approvals queue). Omit for everything. */
+export function getProductionOrders(status?: string): Promise<ProductionOrder[]> {
+  return request<ProductionOrder[]>(
+    `/production${status ? `?status=${encodeURIComponent(status)}` : ""}`,
+  );
+}
+
+/** Create a production order. Callers without `production.manage` are
+ *  forced to `pending` server-side regardless of `status` — submitting
+ *  for approval is the only right they have. */
+export function createProductionOrder(input: {
+  product_name: string;
+  product_id?: number;
+  qty_planned: number;
+  status?: "pending" | "planned";
+  priority?: "low" | "normal" | "high" | "urgent";
+  planned_start?: string; // YYYY-MM-DD
+  target_completion?: string; // YYYY-MM-DD
+  customer?: string;
+  notes?: string;
+}): Promise<ProductionOrder> {
+  return request<ProductionOrder>("/production", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export function getProductionOrder(id: number): Promise<ProductionOrder> {
@@ -197,6 +246,162 @@ export function updateProductionOrder(
     method: "PATCH",
     body: JSON.stringify(patch),
   });
+}
+
+// ----- Production approvals (pending → planned | cancelled) -----------
+
+/** Manager adjustments applied atomically WITH the approval. All fields
+ *  optional — an empty body approves the order exactly as requested. */
+export type ApproveAdjustments = {
+  qty_planned?: number;
+  priority?: "low" | "normal" | "high" | "urgent";
+  planned_start?: string; // YYYY-MM-DD
+  target_completion?: string; // YYYY-MM-DD
+  notes?: string;
+};
+
+export function approveProductionOrder(
+  id: number,
+  adjustments?: ApproveAdjustments,
+): Promise<ProductionOrder> {
+  return request<ProductionOrder>(`/production/${id}/approve`, {
+    method: "POST",
+    body: JSON.stringify(adjustments ?? {}),
+  });
+}
+
+/** Reject a pending order (reason required, min 3 chars server-side —
+ *  it is appended to the order notes so the requester sees why). */
+export function rejectProductionOrder(id: number, reason: string): Promise<ProductionOrder> {
+  return request<ProductionOrder>(`/production/${id}/reject`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+// ----- Order readiness (the approval screen's data) -------------------
+
+export type ReadinessCheck = {
+  key: string;
+  level: "ok" | "warn" | "error";
+  message: string;
+};
+
+/** Per-ingredient material position AFTER other open orders' claims.
+ *  `short` is measured against `available`, not raw on-hand — two orders
+ *  must not both count the same material as theirs. */
+export type ReadinessIngredient = {
+  sku_code: string | null;
+  name: string;
+  required: number;
+  on_hand: number;
+  reserved_elsewhere: number;
+  available: number;
+  short: number;
+  vendor: string | null;
+  lead_time_days: number | null;
+  earliest: string; // YYYY-MM-DD
+  cost_per_unit: number | null;
+};
+
+/** Another open order claiming one of this order's SKUs. */
+export type ReadinessConflict = {
+  order_code: string;
+  product_name: string;
+  status: string;
+  target_completion: string | null;
+  skus: { sku_code: string | null; qty_reserved: number }[];
+};
+
+export type OrderReadiness = {
+  product: { id: number; code: string; name: string } | null;
+  resolution: "code-match" | "name-match" | "none";
+  checks: ReadinessCheck[];
+  ingredients: ReadinessIngredient[];
+  earliest_start: string | null;
+  conflicts: ReadinessConflict[];
+};
+
+export function getOrderReadiness(orderId: number): Promise<OrderReadiness> {
+  return request<OrderReadiness>(`/production/${orderId}/readiness`);
+}
+
+// ----- Products (finished goods catalog) ------------------------------
+
+/** Catalog projection of the backend's ProductOut — only what the
+ *  feasibility picker renders (the BOM itself stays on the web). */
+export type Product = {
+  id: number;
+  code: string;
+  name: string;
+  size_label: string | null;
+  unit_label: string | null;
+  is_active: boolean;
+  bom_line_count: number;
+};
+
+export function listProducts(q?: string, activeOnly = true): Promise<Product[]> {
+  const params = new URLSearchParams();
+  if (q && q.trim()) params.set("q", q.trim());
+  if (activeOnly) params.set("active_only", "true");
+  const qs = params.toString();
+  return request<Product[]>(`/products${qs ? `?${qs}` : ""}`);
+}
+
+// ----- Feasibility (can we make N of product X?) ----------------------
+
+export type FeasibilityLine = {
+  category_id: number;
+  category_code: string | null;
+  category_name: string | null;
+  stock_unit: string | null;
+  qty_per_unit: number;
+  scrap_factor_pct: number;
+  required_qty: number;
+  on_hand: number;
+  // Claimed by OTHER open production orders, and what's genuinely left
+  // after them — shortage is computed against `available`.
+  reserved_elsewhere: number;
+  available: number;
+  shortage_qty: number;
+  status: "ok" | "short" | "no_vendor";
+  lead_time_days: number | null;
+  primary_vendor: string | null;
+  earliest_available_date: string; // YYYY-MM-DD
+  cost_per_unit: number | null;
+  line_total_cost: number | null;
+};
+
+export type FeasibilitySummary = {
+  feasible: boolean;
+  short_count: number;
+  no_vendor_count: number;
+  earliest_start_date: string; // YYYY-MM-DD
+  total_cost: number | null;
+  on_time_for_target: boolean | null;
+};
+
+export type FeasibilityResult = {
+  product_code: string;
+  product_name: string;
+  qty: number;
+  target_date: string | null;
+  lines: FeasibilityLine[];
+  summary: FeasibilitySummary;
+};
+
+export function checkFeasibility(
+  productCode: string,
+  qty: number,
+  targetDate?: string, // YYYY-MM-DD
+): Promise<FeasibilityResult> {
+  return request<FeasibilityResult>(
+    `/products/${encodeURIComponent(productCode)}/feasibility`,
+    {
+      method: "POST",
+      body: JSON.stringify({ qty, ...(targetDate ? { target_date: targetDate } : {}) }),
+    },
+  );
 }
 
 // ----- Waste log ------------------------------------------------------

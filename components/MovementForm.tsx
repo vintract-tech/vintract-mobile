@@ -29,7 +29,14 @@ import { BrandMark } from "./BrandMark";
 import { LightBackground } from "./LightBackground";
 import { Screen } from "./Screen";
 import { SideMenu } from "./SideMenu";
-import { createMovement, getItemBySku, parseQtyHint, type Item } from "../lib/api";
+import {
+  createMovement,
+  getItemBySku,
+  listItemVendors,
+  parseQtyHint,
+  type Item,
+  type ItemVendorLink,
+} from "../lib/api";
 import { loadSession } from "../lib/auth";
 
 export type MovementMode = {
@@ -58,10 +65,16 @@ export function MovementScreen({
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  // INWARD only: the item's vendor catalogue + which vendor this delivery
+  // came from. null supplier = "No Vendor (Unknown)" — never guessed.
+  const [vendors, setVendors] = useState<ItemVendorLink[] | null>(null);
+  const [supplierId, setSupplierId] = useState<number | null>(null);
 
   async function resolveSku(value: string) {
     setErr(null);
     setItem(null);
+    setVendors(null);
+    setSupplierId(null);
     if (!value.trim()) return;
     setResolving(true);
     try {
@@ -79,6 +92,18 @@ export function MovementScreen({
       // previous scan), don't blow that away.
       if (qtyHint != null && !qty.trim()) {
         setQty(String(qtyHint));
+      }
+      // Receiving: pull the item's vendor catalogue and pre-select the
+      // preferred vendor. Non-fatal — items with no catalogue just book
+      // as "No Vendor (Unknown)", exactly as before.
+      if (mode.kind === "INWARD") {
+        try {
+          const links = (await listItemVendors(it.sku_code)).filter((v) => v.is_active);
+          setVendors(links);
+          setSupplierId(links.find((v) => v.is_preferred)?.supplier_id ?? null);
+        } catch {
+          setVendors([]);
+        }
       }
     } catch (e: any) {
       setErr(e?.message ?? "SKU not found");
@@ -118,21 +143,36 @@ export function MovementScreen({
     try {
       const session = await loadSession();
       const operator = session?.user?.name || session?.user?.email;
+      // INWARD: tag the delivery with the chosen vendor + their catalogue
+      // cost so FIFO lots and stock value stay per-vendor accurate.
+      const chosen =
+        mode.kind === "INWARD" && supplierId != null
+          ? vendors?.find((v) => v.supplier_id === supplierId)
+          : undefined;
       const mov = await createMovement({
         sku_code: item!.sku_code,
         qty: q,
         kind: mode.kind,
         operator,
         note: note.trim() || undefined,
+        ...(chosen
+          ? {
+              supplier_id: chosen.supplier_id,
+              ...(chosen.cost_per_unit != null ? { cost_per_unit: chosen.cost_per_unit } : {}),
+            }
+          : {}),
       });
       setOk(
-        `${mode.verb} ${q} ${item!.stock_unit ?? ""}. New balance: ${mov.balance_after} ${item!.stock_unit ?? ""}.`,
+        `${mode.verb} ${q} ${item!.stock_unit ?? ""}. New balance: ${mov.balance_after} ${item!.stock_unit ?? ""}.` +
+          (chosen ? ` Vendor: ${chosen.vendor}.` : ""),
       );
       // reset
       setSku("");
       setQty("");
       setNote("");
       setItem(null);
+      setVendors(null);
+      setSupplierId(null);
     } catch (e: any) {
       setErr(e?.message ?? "Save failed");
     } finally {
@@ -220,6 +260,45 @@ export function MovementScreen({
                 </View>
               )}
             </View>
+
+            {/* Vendor (INWARD only) — who did this delivery come from?
+                Preferred vendor pre-selected; "No Vendor (Unknown)" books
+                the stock without a source, exactly like before. */}
+            {mode.kind === "INWARD" && item && vendors != null && vendors.length > 0 && (
+              <View style={styles.card}>
+                <Text style={styles.label}>Vendor</Text>
+                <View style={styles.vendorWrap}>
+                  <Pressable
+                    onPress={() => setSupplierId(null)}
+                    style={[styles.vendorChip, supplierId === null && styles.vendorChipOn]}
+                  >
+                    <Text style={[styles.vendorChipTxt, supplierId === null && styles.vendorChipTxtOn]}>
+                      No Vendor (Unknown)
+                    </Text>
+                  </Pressable>
+                  {vendors.map((v) => {
+                    const on = supplierId === v.supplier_id;
+                    return (
+                      <Pressable
+                        key={v.id}
+                        onPress={() => setSupplierId(v.supplier_id)}
+                        style={[styles.vendorChip, on && styles.vendorChipOn]}
+                      >
+                        <Text style={[styles.vendorChipTxt, on && styles.vendorChipTxtOn]}>
+                          {v.vendor}
+                          {v.is_preferred ? " ★" : ""}
+                        </Text>
+                        {v.cost_per_unit != null && (
+                          <Text style={[styles.vendorChipCost, on && styles.vendorChipTxtOn]}>
+                            ₹{v.cost_per_unit}/{item.stock_unit ?? "Unit"}
+                          </Text>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
 
             {/* Qty + Note */}
             <View style={styles.card}>
@@ -389,6 +468,20 @@ const styles = StyleSheet.create({
   resolvedMeta: { color: "#64748b", fontSize: 11, marginTop: 2 },
   resolvedStock: { color: "#475569", fontSize: 13, marginTop: 6, fontWeight: "600" },
   resolvedStockVal: { color: "#7c3aed", fontWeight: "800", fontSize: 14 },
+
+  vendorWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  vendorChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  vendorChipOn: { backgroundColor: "#7c3aed", borderColor: "#6d28d9" },
+  vendorChipTxt: { color: "#334155", fontSize: 13, fontWeight: "800" },
+  vendorChipTxtOn: { color: "#fff" },
+  vendorChipCost: { color: "#64748b", fontSize: 10, fontWeight: "700", marginTop: 1 },
 
   errBox: {
     backgroundColor: "#fef2f2",
